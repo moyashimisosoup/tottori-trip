@@ -77,23 +77,21 @@ function fillPlaceCard(place,row){const btn=document.createElement('button');btn
 function renderList(){state.places=allPlaces();let list=filtered();$('placesCount').textContent=list.length;$('places').replaceChildren(...list.map(p=>fillPlaceCard(p,state.journal[p.id])));if(!state.loading)$('message').textContent=list.length?`${list.length}か所`: 'この条件の場所はありません。エリアやジャンルを変えてください。';drawMarkers(list)}
 function renderJournal(){let rows=Object.values(state.journal).filter(row=>row&&row.place).sort((a,b)=>new Date(b.visitedAt||b.nearAt||b.seenAt||0)-new Date(a.visitedAt||a.nearAt||a.seenAt||0));$('journalCount').textContent=rows.length;$('stats').innerHTML=[['みつけた',rows.filter(r=>r.seenAt).length],['すれ違い',rows.filter(r=>r.nearAt).length],['訪れた',rows.filter(r=>r.visitedAt).length]].map(([k,v])=>`<div class="stat"><b>${v}</b><small>${k}</small></div>`).join('');$('journal').replaceChildren(...(rows.length?rows.map(r=>fillPlaceCard(r.place,r)):[Object.assign(document.createElement('div'),{className:'empty',textContent:'旅の記録はまだありません。'})]));}
 function drawMarkers(list){if(!state.map||!window.L)return;state.markers.clearLayers();for(const p of list){if(p.lat==null||p.lng==null)continue;const icon=L.divIcon({className:'',html:`<div class="pixel-pin c-${p.type}"></div>`,iconSize:[22,22],iconAnchor:[11,11]});const marker=L.marker([p.lat,p.lng],{icon});marker.on('click',()=>openDetail(p));marker.addTo(state.markers)}if(state.gps){L.circleMarker([state.gps.lat,state.gps.lng],{radius:6,color:'#fff',weight:3,fillColor:'#276c98',fillOpacity:1}).addTo(state.markers)}}
-// One active provider at a time. GSI is the default for Tottori; OSM is a
-// fallback, never fetched in parallel. The visible viewport alone is requested.
+// Match the stable map implementation in yama-books/mansion-poet:
+// ordinary Leaflet TileLayer, GSI pale tiles, no custom GridLayer / tile fallbacks.
+// OpenPOI provides only facility coordinates and is independent of basemap images.
 const MAP_PROVIDERS={
- gsi:{label:'地理院',url:'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png',native:18,credit:'&copy; <a href="https://maps.gsi.go.jp/">国土地理院</a>'},
- osm:{label:'OSM',url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',native:19,credit:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}
+ gsi:{label:'地理院',url:'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',
+  options:{attribution:'地理院タイル',maxZoom:18,minZoom:5}},
+ osm:{label:'OSM',url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  options:{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+   maxZoom:18,minZoom:5}}
 };
-// Recover each map tile independently: a single failed tile must not discard
-// the other successfully loaded tiles. OpenPOI supplies locations, not imagery.
-let mapResizeTimer=null,mapBaseLayer=null,mapProvider='gsi',mapGeneration=0;
-let mapTileStats={requested:0,ok:0,alternate:0,failed:0,finished:0};
-const EMPTY_TILE='data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(
- '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><rect width="256" height="256" fill="#e5e7db"/><path d="M0 0H256V256H0Z" fill="none" stroke="#c6cabb" stroke-width="2"/><path d="M108 124h40m-20-20v40" stroke="#b7bcad" stroke-width="3"/></svg>'
-);
-function refreshMapSize(delay=90){
+let mapResizeTimer=null,mapBaseLayer=null,mapProvider='gsi',mapTileErrors=0,mapTileLoads=0;
+function refreshMapSize(delay=80){
  if(!state.map)return;
  clearTimeout(mapResizeTimer);
- mapResizeTimer=setTimeout(()=>{if(state.map)state.map.invalidateSize({pan:false,animate:false})},delay)
+ mapResizeTimer=setTimeout(()=>{if(state.map)state.map.invalidateSize({pan:false,animate:false})},delay);
 }
 function mapStamp(label=''){
  const name=AREAS[state.area]?.name||'現在地';
@@ -101,98 +99,48 @@ function mapStamp(label=''){
 }
 function googleMapsLink(p){
  const param=p.lat!=null&&p.lng!=null?(p.lat+','+p.lng):[p.name,where(p)].filter(Boolean).join(' ');
- return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(param)
+ return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(param);
 }
 function showMapFailure(){
  $('mapFallback').hidden=false;
  mapStamp('読込不可');
  $('mapFallbackLink').href=googleMapsLink(state.map?state.map.getCenter():state.center);
 }
-function updateMapTileStatus(gen){
- if(gen!==mapGeneration)return;
- const stat=mapTileStats;
- const unavailable=stat.failed>0;
- $('mapNotice').hidden=!unavailable;
- if(unavailable)$('mapNoticeText').textContent='地図の一部が取得できません ('+stat.failed+'枚)';
+function mapTileWarning(){
+ if(mapTileErrors===0)return;
+ $('mapNotice').hidden=false;
+ $('mapNoticeText').textContent='地図画像を読み込めません ('+mapTileErrors+'枚)';
  $('mapNoticeLink').href=googleMapsLink(state.map?state.map.getCenter():state.center);
- if(stat.alternate>0&&!unavailable)mapStamp('地理院＋OSM');
- else mapStamp();
- if(stat.finished===stat.requested&&stat.requested>0&&stat.ok===0)showMapFailure();
- else if(stat.ok>0)$('mapFallback').hidden=true;
-}
-function tileUrl(provider,coords){
- return MAP_PROVIDERS[provider].url
-  .replace('{z}',String(coords.z)).replace('{x}',String(coords.x)).replace('{y}',String(coords.y))
 }
 function switchMapProvider(next){
  if(!state.map||!window.L)return;
- mapProvider=next;
- const gen=++mapGeneration;
- mapTileStats={requested:0,ok:0,alternate:0,failed:0,finished:0};
+ const provider=MAP_PROVIDERS[next];
+ if(!provider)return;
+ mapTileLoads=0;mapTileErrors=0;
+ const layer=L.tileLayer(provider.url,provider.options);
+ // An error must NEVER replace the entire layer: keep healthy imagery intact.
+ layer.on('tileload',()=>{mapTileLoads++});
+ layer.on('tileerror',()=>{mapTileErrors++;mapTileWarning()});
+ layer.on('load',()=>{
+  if(mapTileLoads===0&&mapTileErrors>0)showMapFailure();
+  else if(mapTileLoads>0)$('mapFallback').hidden=true;
+ });
+ const previous=mapBaseLayer;
+ mapProvider=next;mapBaseLayer=layer;
  $('mapFallback').hidden=true;
  $('mapNotice').hidden=true;
  mapStamp();
- const primary=next,alternate=primary==='gsi'?'osm':'gsi';
- const RecoveryLayer=L.GridLayer.extend({
-  createTile(coords,done){
-   const tile=document.createElement('img');
-   tile.alt='';
-   tile.setAttribute('aria-hidden','true');
-   tile.width=256;tile.height=256;
-   tile.style.backgroundColor='#e5e7db';
-   if(gen===mapGeneration)mapTileStats.requested++;
-   let finished=false,request=0,watchdog=null;
-   const cancel=()=>{clearTimeout(watchdog);tile.onload=null;tile.onerror=null};
-   const complete=(ok,usedAlternate)=>{
-    if(finished)return;
-    finished=true;cancel();
-    if(gen===mapGeneration){
-     mapTileStats.finished++;
-     if(ok){mapTileStats.ok++;if(usedAlternate)mapTileStats.alternate++}
-     else mapTileStats.failed++;
-     updateMapTileStatus(gen);
-    }
-    done(null,tile);
-   };
-   const attempt=(provider,round)=>{
-    const requestId=++request;
-    cancel();
-    const rejected=()=>{
-     if(finished||requestId!==request)return;
-     cancel();
-     if(round===0)attempt(alternate,1);
-     else {tile.src=EMPTY_TILE;complete(false,false)}
-    };
-    tile.onload=()=>{
-     if(requestId!==request||finished)return;
-     complete(true,round===1);
-    };
-    tile.onerror=rejected;
-    watchdog=setTimeout(rejected,7500);
-    tile.src=tileUrl(provider,coords);
-   };
-   attempt(primary,0);
-   return tile;
-  }
- });
- const layer=new RecoveryLayer({
-  tileSize:256,maxZoom:19,maxNativeZoom:18,keepBuffer:1,
-  updateWhenIdle:true,
-  attribution:MAP_PROVIDERS.gsi.credit+' / '+MAP_PROVIDERS.osm.credit
- });
- const old=mapBaseLayer;
- mapBaseLayer=layer;
  layer.addTo(state.map);
- if(old)state.map.removeLayer(old);
- refreshMapSize(100);
-}
-function reloadMapTiles(){
- switchMapProvider(mapProvider);
- toast('地図を再取得します');
+ if(previous)state.map.removeLayer(previous);
+ refreshMapSize();
 }
 function changeMapProvider(){
  switchMapProvider(mapProvider==='gsi'?'osm':'gsi');
- toast(MAP_PROVIDERS[mapProvider].label+' を優先して表示します');
+ toast(MAP_PROVIDERS[mapProvider].label+' に切り替えました');
+}
+function reloadMapTiles(){
+ switchMapProvider(mapProvider);
+ toast('地図を再読み込みします');
 }
 function mapInit(){
  if(!window.L){
@@ -201,20 +149,23 @@ function mapInit(){
   $('mapRetryBtn').disabled=true;
   return;
  }
- state.map=L.map('map',{zoomControl:false}).setView([state.center.lat,state.center.lng],13);
- state.markers=L.layerGroup().addTo(state.map);
- L.control.zoom({position:'bottomright'}).addTo(state.map);
- switchMapProvider('gsi');
- requestAnimationFrame(()=>refreshMapSize(0));
- window.addEventListener('load',()=>refreshMapSize(150));
- window.addEventListener('resize',()=>refreshMapSize(150));
- window.addEventListener('orientationchange',()=>refreshMapSize(300));
- document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshMapSize(150)});
- if(typeof ResizeObserver==='function'){
-  const observer=new ResizeObserver(()=>refreshMapSize(100));
-  observer.observe($('map'));
+ try{
+  // These settings and layer URL mirror APP-003's reliably rendered map.
+  state.map=L.map('map',{zoomControl:false,scrollWheelZoom:false})
+   .setView([state.center.lat,state.center.lng],14);
+  switchMapProvider('gsi');
+  L.control.zoom({position:'bottomleft'}).addTo(state.map);
+  state.markers=L.layerGroup().addTo(state.map);
+  refreshMapSize(80);
+  window.addEventListener('resize',()=>refreshMapSize(100));
+  window.addEventListener('orientationchange',()=>refreshMapSize(180));
+  document.addEventListener('visibilitychange',()=>{
+   if(!document.hidden)refreshMapSize(100);
+  });
+ }catch(err){
+  console.warn('Map initialization failed',err);
+  showMapFailure();
  }
- setTimeout(()=>refreshMapSize(350),350);
 }
 function viewOnMap(){
  const p=state.selected;
@@ -268,4 +219,4 @@ function makeCanvas(){const total=dataRows().length,rows=dataRows().slice(0,60);
 async function imageExport(){try{const c=makeCanvas();const blob=await new Promise(resolve=>c.toBlob(resolve,'image/png'));if(!blob)throw Error('png');const file=new File([blob],'tottori-trip.png',{type:'image/png'});if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:'とっとりトリップ'});return}catch(err){if(err.name==='AbortError')return}}download(blob,'tottori-trip.png');toast('旅帖の画像を作成しました')}catch{toast('画像を作成できませんでした')}}
 function openGoogle(){const p=state.selected;if(p)window.open(googleMapsLink(p),'_blank','noopener')}
 function init(){mapInit();$('area').addEventListener('change',resetArea);$('locateBtn').addEventListener('click',locate);$('trackBtn').addEventListener('click',toggleTracking);$('searchForm').addEventListener('submit',doSearch);document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>chooseFilter(b.dataset.filter)));$('placesTab').addEventListener('click',()=>showTab('places'));$('journalTab').addEventListener('click',()=>showTab('journal'));$('visitBtn').addEventListener('click',()=>recordClick('visited'));$('nearBtn').addEventListener('click',()=>recordClick('near'));$('googleMapsBtn').addEventListener('click',openGoogle);$('viewOnMapBtn').addEventListener('click',viewOnMap);$('mapSourceBtn').addEventListener('click',changeMapProvider);$('mapRetryBtn').addEventListener('click',reloadMapTiles);$('mapFallbackRetryBtn').addEventListener('click',reloadMapTiles);$('infoBtn').addEventListener('click',()=>$('info').showModal());$('adultConfirm').addEventListener('click',()=>{state.adultOK=true;$('adultDialog').close();chooseFilter('adult')});$('adultCancel').addEventListener('click',()=>$('adultDialog').close());$('imageBtn').addEventListener('click',imageExport);$('printBtn').addEventListener('click',()=>{renderJournal();window.print()});$('backupBtn').addEventListener('click',backup);$('restoreFile').addEventListener('change',restore);$('journalCount').textContent=Object.keys(state.journal).length;renderList();fetchPlaces();}
-init();
+if(document.readyState==='complete')init();else window.addEventListener('load',init,{once:true});
