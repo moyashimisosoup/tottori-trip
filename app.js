@@ -77,6 +77,10 @@ function searchVisibleMap(){
  if(!state.map||state.loading)return;
  const c=state.map.getCenter();
  state.center={lat:c.lat,lng:c.lng};
+ if(isTottori(state.center)){
+  const nearest=Object.keys(AREAS).reduce((a,b)=>meters(state.center,AREAS[b])<meters(state.center,AREAS[a])?b:a);
+  state.area=nearest;$('area').value=nearest;
+ }
  $('searchHereBtn').hidden=true;
  const q=state.filter==='adult'?'風俗 ソープ キャバクラ ホストクラブ':$('search').value.trim();
  fetchPlaces(q)
@@ -260,7 +264,7 @@ function mapInit(){
  }
  try{
   // These settings and layer URL mirror APP-003's reliably rendered map.
-  state.map=L.map('map',{zoomControl:false,scrollWheelZoom:false,zoomSnap:0.25})
+  state.map=L.map('map',{zoomControl:false,scrollWheelZoom:false,zoomSnap:0.25,tapHold:false})
    .setView([state.center.lat,state.center.lng],16);
   switchMapProvider('gsi');
   L.control.zoom({position:'bottomleft'}).addTo(state.map);
