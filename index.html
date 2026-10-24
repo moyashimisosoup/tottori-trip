@@ -39,7 +39,13 @@
   <div id="map" role="region" aria-label="鳥取の施設地図"></div>
   <div class="map-fallback" id="mapFallback" hidden>
     <span>地図を読み込めません</span>
+    <button id="mapFallbackRetryBtn" type="button">↻ もう一度</button>
     <a id="mapFallbackLink" href="https://www.google.com/maps/" target="_blank" rel="noopener">Googleマップで見る ↗</a>
+  </div>
+  <div id="mapNotice" class="map-notice" role="status" hidden>
+    <span id="mapNoticeText">地図を確認中</span>
+    <button id="mapRetryBtn" type="button">↻ 再読込</button>
+    <a id="mapNoticeLink" href="https://www.google.com/maps/" target="_blank" rel="noopener">Google ↗</a>
   </div>
   <div class="map-stamp" id="mapStamp" role="status" aria-live="polite">鳥取市 · 地理院</div>
   <button id="mapSourceBtn" class="map-source-btn" type="button">↻ 地図切替</button>
