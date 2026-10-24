@@ -4,8 +4,8 @@ const DEMO={lat:35.49314,lng:134.22564,accuracy:0};
 const LITERARY_SOURCE="https://odp-pref-tottori.tori-info.co.jp/dataset/1641.html";
 // Publicly documented monument coordinates. The app does not store the user's GPS coordinates.
 const SEEDS=[
- {id:"city:hosai-kozenji",name:"尾崎放哉句碑（興禅寺）",lat:35.5039851944,lng:134.2412451944,kind:"literature",address:"鳥取市栗谷町",source:"鳥取市オープンデータ",licenses:["CC BY"],attributions:["鳥取市「尾崎放哉句碑の建立場所」"]},
- {id:"city:hosai-jokamachi",name:"尾崎放哉句碑（城下町とっとり交流館）",lat:35.4989317222,lng:134.2369208055,kind:"literature",address:"鳥取市元大工町",source:"鳥取市オープンデータ",licenses:["CC BY"],attributions:["鳥取市「尾崎放哉句碑の建立場所」"]}
+ {id:"city:hosai-kozenji",name:"尾崎放哉句碑（興禅寺）",lat:35.5039851944,lng:134.2412451944,kind:"literature",tags:["literature","people"],address:"鳥取市栗谷町",source:"鳥取市オープンデータ",licenses:["CC BY"],attributions:["鳥取市「尾崎放哉句碑の建立場所」"]},
+ {id:"city:hosai-jokamachi",name:"尾崎放哉句碑（城下町とっとり交流館）",lat:35.4989317222,lng:134.2369208055,kind:"literature",tags:["literature","people"],address:"鳥取市元大工町",source:"鳥取市オープンデータ",licenses:["CC BY"],attributions:["鳥取市「尾崎放哉句碑の建立場所」"]}
 ];
 const FILTERS={all:"ちかくの出会い",culture:"名所・史跡",literature:"文学",people:"人物",food:"ごはん",night:"夜のまち",journal:"わたしの旅帖"};
 const KINDS={culture:"史跡・名所",literature:"文学",people:"人物",food:"ごはん",night:"夜",other:"施設"};
@@ -23,7 +23,7 @@ function isTottori(p){return p.lat>35.0&&p.lat<35.7&&p.lng>133&&p.lng<134.7}
 function kindOf(p){if(/ソープ|風俗|デリヘル|キャバクラ|ガールズバー|スナック|メンズエステ/.test(p.name||""))return "night";if(p.category==="tourism")return "culture";if(["restaurant","cafe","fast_food","bakery"].includes(p.category))return "food";if(p.category==="bar_izakaya")return "night";if(["public_facility","station"].includes(p.category))return "culture";return "other"}
 function normalize(p){const lat=Number(p.lat),lng=Number(p.lng);if(!Number.isFinite(lat)||!Number.isFinite(lng)||!p.name||p.prefecture&&p.prefecture!=="鳥取県")return null;const name=String(p.name).trim();const kind=kindOf(p);return{id:"poi:"+[name,lat.toFixed(5),lng.toFixed(5)].join(":"),name,lat,lng,kind,address:p.address||p.city||"",source:"OpenPOI API",licenses:Array.isArray(p.licenses)?p.licenses:[],attributions:Array.isArray(p.attributions)?p.attributions:[]}}
 function spotDistance(p){return state.center?distance(state.center,p):Infinity}
-function currentSpots(){const raw=state.filter==="journal"?Object.values(state.records).map(r=>r.spot):state.spots.concat(state.filter==="night"?state.nightSpots:[]);const unique=new Map(raw.filter(Boolean).map(s=>[s.id,s]));return [...unique.values()].filter(s=>state.filter==="all"?s.kind!=="night":state.filter==="journal"||s.kind===state.filter).sort((a,b)=>state.filter==="journal"?(state.records[b.id]?.time||"").localeCompare(state.records[a.id]?.time||""):spotDistance(a)-spotDistance(b)).slice(0,100)}
+function currentSpots(){const raw=state.filter==="journal"?Object.values(state.records).map(r=>r.spot):state.spots.concat(state.filter==="night"?state.nightSpots:[]);const unique=new Map(raw.filter(Boolean).map(s=>[s.id,s]));return [...unique.values()].filter(s=>state.filter==="all"?s.kind!=="night":state.filter==="journal"||s.kind===state.filter||s.tags?.includes(state.filter)).sort((a,b)=>state.filter==="journal"?(state.records[b.id]?.time||"").localeCompare(state.records[a.id]?.time||""):spotDistance(a)-spotDistance(b)).slice(0,100)}
 function recordSpot(s,status,m){const old=state.records[s.id];const next=old&&RANK[old.status]>RANK[status]?old.status:status;state.records[s.id]={spot:s,status:next,bestDistance:Number.isFinite(m)?Math.min(m,old?.bestDistance??Infinity):old?.bestDistance??null,time:new Date().toISOString(),demo:state.demo||old?.demo||false};saveRecords();refreshCounter();render()}
 function refreshCounter(){$("counter").textContent=Object.keys(state.records).length}
 function node(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=String(text);return el}
