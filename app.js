@@ -67,7 +67,21 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(state.journal))}catc
 function idOf(p){return p.id||'poi:'+([p.source||'',p.name||'',Number(p.lat).toFixed(5),Number(p.lng).toFixed(5)].join('|'))}
 function normalize(raw){if(!raw||!raw.name)return null;const lat=raw.lat===''||raw.lat==null?null:Number(raw.lat);const lng=raw.lng===''||raw.lng==null?null:Number(raw.lng);if(lat!==null&&(!Number.isFinite(lat)||lat < -90||lat>90))return null;if(lng!==null&&(!Number.isFinite(lng)||lng< -180||lng>180))return null;
  const p={name:String(raw.name).slice(0,130),lat,lng,address:String(raw.address||'').slice(0,180),category:String(raw.category||'unknown'),source:String(raw.source||'openpoi'),attributions:Array.isArray(raw.attributions)?raw.attributions.slice(0,15):[],licenses:Array.isArray(raw.licenses)?raw.licenses.slice(0,15):[],verified:true};p.id=idOf(p);p.type=classify(p);return p}
-function classify(p){if(p.type)return p.type;const n=(p.name||'');if(/ソープランド|ファッションヘルス|デリヘル|ホテヘル|ピンクサロン|セクシーキャバクラ|キャバクラ|ホストクラブ|メンズエステ|大人の社交|風俗店/.test(n))return 'adult';if(/放哉|文学|文芸|歌碑|句碑|詩碑|小説/.test(n))return 'literature';if(/生誕|記念館|水木しげる|青山剛昌/.test(n))return 'people';if(/城跡|古墳|遺跡|史跡|寺|神社|神宮|石碑|旧居|文化財/.test(n))return 'history';if(['restaurant','cafe','fast_food','bakery','bar_izakaya'].includes(p.category))return 'food';if(p.category==='tourism'||/砂丘|博物館|美術館|景勝|展望|公園|温泉/.test(n))return 'sight';return 'other'}
+function classify(p){
+ if(p.type)return p.type;
+ const n=String(p.name||'');
+ // Compound names such as 円通寺簡易郵便局 must not become temples.
+ if(/郵便局|郵便ポスト|〒|ゆうちょ|学校|保育園|幼稚園|交番|駐在所|市役所|役場|公民館/.test(n))return 'other';
+ if(/ソープランド|ファッションヘルス|デリヘル|ホテヘル|ピンクサロン|キャバクラ|ホストクラブ|風俗店/.test(n))return 'adult';
+ if(/スナック|ラウンジ|クラブ|CLUB|club|コンカフェ/.test(n)&&
+   ['bar_izakaya','retail_other','service_other','unknown'].includes(p.category))return 'adult';
+ if(/放哉|文学|文芸|歌碑|句碑|詩碑|小説|万葉|図書館/.test(n))return 'literature';
+ if(/生誕|記念館|水木しげる|青山剛昌/.test(n))return 'people';
+ if(/城跡|古墳|遺跡|史跡|神社|神宮|石碑|旧居|文化財|(^|[\s　])[^\s　]+寺$|寺院/.test(n))return 'history';
+ if(['restaurant','cafe','fast_food','bakery','bar_izakaya'].includes(p.category))return 'food';
+ if(p.category==='tourism'||/砂丘|博物館|美術館|景勝|展望|公園|温泉/.test(n))return 'sight';
+ return 'other'
+}
 function rad(n){return n*Math.PI/180}
 function meters(a,b){if(!a||!b||a.lat==null||a.lng==null||b.lat==null||b.lng==null)return Infinity;const dLat=rad(b.lat-a.lat),dLng=rad(b.lng-a.lng),v=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLng/2)**2;return 6371000*2*Math.atan2(Math.sqrt(v),Math.sqrt(Math.max(0,1-v)))}
 function prettyDist(p){let n=meters(state.gps||state.center,p);if(!Number.isFinite(n))return '参考地点';return `${p.source==='guide'?'約':''}${n<1000?Math.round(n)+'m':(n/1000).toFixed(1)+'km'}`}
@@ -353,7 +367,7 @@ function isTottori(p){return p.lat>=35.0&&p.lat<=35.65&&p.lng>=133.11&&p.lng<=13
 function locationFailure(err){status(err?.code===1?'位置情報が拒否されました':'現在地を取得できません');toast('位置情報の設定をご確認ください')}
 function onLocation(pos,recenter){const p={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:pos.coords.accuracy};state.gps=p;const inPref=isTottori(p);status(inPref?`現在地を取得 · 精度 約${Math.round(p.accuracy)}m`:'鳥取県外 · 鳥取のスポットを表示',inPref);if(recenter){if(!inPref){toast('現在地は鳥取県外です。鳥取のエリアを表示します');renderList();return}state.center={lat:p.lat,lng:p.lng};const ks=Object.keys(AREAS);state.area=ks.reduce((a,b)=>meters(p,AREAS[b])<meters(p,AREAS[a])?b:a);$('area').value=state.area;updateMap();fetchPlaces()}else{drawMarkers(filtered());if(!inPref)return;checkNear();if(state.tracking&&(!state.lastLoc||meters(p,state.lastLoc)>300)&&Date.now()-state.lastFetch>60000){state.center={lat:p.lat,lng:p.lng};state.lastLoc=p;updateMap();fetchPlaces()}}}
 function locate(){if(!navigator.geolocation){toast('この端末では現在地を取得できません');return}status('現在地を確認中…');navigator.geolocation.getCurrentPosition(p=>onLocation(p,true),locationFailure,{enableHighAccuracy:true,timeout:12000,maximumAge:15000})}
-function checkNear(){if(!state.tracking||!state.gps||state.gps.accuracy>80)return;let found=0;for(const p of [...state.results,...currentGuides().filter(g=>g.source==='tottori-city-poi')]){if(p.verified===false||p.lat==null||p.lng==null)continue;const d=meters(state.gps,p);if(d<=160&&!state.journal[p.id]?.nearAt){eventFor(p,'near');found++}}if(found){toast(`${found}か所とすれ違いました`);renderList();if(state.tab==='journal')renderJournal()}}
+function checkNear(){if(!state.tracking||!state.gps||state.gps.accuracy>80)return;let found=0;for(const p of [...state.results,...currentGuides().filter(g=>g.verified===true&&g.type!=='adult')]){if(p.verified===false||p.lat==null||p.lng==null)continue;const d=meters(state.gps,p);if(d<=160&&!state.journal[p.id]?.nearAt){eventFor(p,'near');found++}}if(found){toast(`${found}か所とすれ違いました`);renderList();if(state.tab==='journal')renderJournal()}}
 function toggleTracking(){if(state.tracking){navigator.geolocation.clearWatch(state.watch);state.watch=null;state.tracking=false;$('trackBtn').textContent='◇ すれ違い OFF';$('trackBtn').setAttribute('aria-pressed','false');return}if(!navigator.geolocation){toast('位置情報が使えません');return}state.tracking=true;$('trackBtn').textContent='◆ すれ違い ON';$('trackBtn').setAttribute('aria-pressed','true');state.watch=navigator.geolocation.watchPosition(p=>onLocation(p,false),err=>{locationFailure(err);toggleTracking()},{enableHighAccuracy:true,maximumAge:10000,timeout:20000})}
 function chooseFilter(f){if(f==='adult'&&!state.adultOK){$('adultDialog').showModal();return}state.filter=f;for(const btn of document.querySelectorAll('[data-filter]')){const on=btn.dataset.filter===f;btn.classList.toggle('active',on);btn.setAttribute('aria-pressed',String(on))}if(f==='adult'){fetchPlaces('風俗 ソープ キャバクラ ホストクラブ')}else if(state.results.length===0||state.lastFetch===0){fetchPlaces()}else if(state.lastQuery==='adult'){state.lastQuery='';fetchPlaces()}else renderList();if(f==='adult')state.lastQuery='adult'}
 function resetArea(){const a=AREAS[$('area').value];state.area=$('area').value;state.center={lat:a.lat,lng:a.lng};state.gps=null;state.query='';$('search').value='';state.lastQuery='';updateMap();fetchPlaces(state.filter==='adult'?'風俗 ソープ キャバクラ ホストクラブ':'')}
