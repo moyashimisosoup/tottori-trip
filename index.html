@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#202b45">
+<title>鳥取旅帖</title>
+<link rel="stylesheet" href="./styles.css">
+<script src="./app.js" defer></script>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <svg class="cat" viewBox="0 0 16 16" shape-rendering="crispEdges" role="img" aria-label="ちょっと生意気なネコ">
+      <path fill="#10182b" d="M2 1h3v2h6V1h3v12h-2v2H4v-2H2z"/>
+      <path fill="#f1d9ac" d="M4 4h8v8H4z"/>
+      <path fill="#10182b" d="M5 6h2v2H5zm5 0h2v2h-2zM7 10h2v1H7zM6 5h2v1H6zm4 0h2v1h-2z"/>
+      <path fill="#d78789" d="M4 9h2v1H4zm7 0h1v1h-1z"/>
+    </svg>
+    <h1>鳥取旅帖</h1>
+    <span class="counter" id="counter">0</span>
+  </header>
+
+  <section class="controls" aria-label="場所">
+    <button id="locate" class="primary" type="button">◎ 現在地</button>
+    <button id="sample" type="button">鳥取駅で試す</button>
+    <button id="tracking" type="button" aria-pressed="false">すれ違い OFF</button>
+  </section>
+  <div class="status" id="status" role="status" aria-live="polite">現在地を取得すると周辺を探せます</div>
+
+  <nav class="filters" id="filters" aria-label="表示切替">
+    <button type="button" data-filter="all" class="active" aria-pressed="true">すべて</button>
+    <button type="button" data-filter="culture" aria-pressed="false">史跡</button>
+    <button type="button" data-filter="literature" aria-pressed="false">文学</button>
+    <button type="button" data-filter="people" aria-pressed="false">人物</button>
+    <button type="button" data-filter="food" aria-pressed="false">ごはん</button>
+    <button type="button" data-filter="night" aria-pressed="false">夜</button>
+    <button type="button" data-filter="journal" aria-pressed="false">旅帖</button>
+  </nav>
+
+  <main>
+    <div class="listhead">
+      <strong id="sectionTitle">ちかくの出会い</strong>
+      <span id="total">0 件</span>
+    </div>
+    <div class="cards" id="cards"></div>
+    <section id="journalTools" class="journal-tools" hidden>
+      <button id="saveImage" class="primary" type="button">旅帖を画像に</button>
+      <button id="savePdf" type="button">PDF印刷</button>
+      <button id="backup" type="button">記録を保存</button>
+      <button id="restore" type="button">記録を読込</button>
+      <input id="backupInput" type="file" accept="application/json,.json" hidden>
+    </section>
+  </main>
+  <footer><a href="https://openpoiapi.com/attribution" target="_blank" rel="noopener">OpenPOI API・出典</a><span>位置情報は端末内に保存</span></footer>
+</div>
+</body>
+</html>
