@@ -60,7 +60,31 @@ function showTab(tab){state.tab=tab;const on=tab==='places';$('placesPane').hidd
 function currentGuides(){return GUIDES.filter(p=>p.area===state.area).concat(state.area==='tottori'?HOSAI_MONUMENTS:[])}
 function allPlaces(){const items=new Map();for(const p of [...currentGuides(),...state.results])items.set(p.id,p);return [...items.values()]}
 function matches(p){if(state.filter!=='all'&&p.type!==state.filter&&!p.relatedTypes?.includes(state.filter))return false;const term=state.query.trim().toLocaleLowerCase();if(term&&!`${p.name} ${p.address||''} ${p.note||''}`.toLocaleLowerCase().includes(term))return false;return true}
-function filtered(){return state.places.filter(matches).sort((a,b)=>meters(state.center,a)-meters(state.center,b)).slice(0,70)}
+function filtered(){
+ const bounds=state.map?.getBounds();
+ const center=state.map?.getCenter()||state.center;
+ return state.places.filter(p=>matches(p)&&
+  (p.lat==null||p.lng==null||!bounds?.isValid()||bounds.contains([p.lat,p.lng])))
+  .sort((a,b)=>meters(center,a)-meters(center,b)).slice(0,70)
+}
+function updateSearchHereButton(){
+ const m=state.map,btn=$('searchHereBtn');
+ if(!m||!state.lastSearchedCenter){btn.hidden=true;return}
+ const pan=meters(m.getCenter(),state.lastSearchedCenter);
+ btn.hidden=pan<75&&Math.abs(m.getZoom()-state.lastSearchedZoom)<0.45;
+}
+function searchVisibleMap(){
+ if(!state.map||state.loading)return;
+ const c=state.map.getCenter();
+ state.center={lat:c.lat,lng:c.lng};
+ if(isTottori(state.center)){
+  const nearest=Object.keys(AREAS).reduce((a,b)=>meters(state.center,AREAS[b])<meters(state.center,AREAS[a])?b:a);
+  state.area=nearest;$('area').value=nearest;
+ }
+ $('searchHereBtn').hidden=true;
+ const q=state.filter==='adult'?'風俗 ソープ キャバクラ ホストクラブ':$('search').value.trim();
+ fetchPlaces(q)
+}
 function badgeHTML(label,kind){return '<span class="badge badge-'+kind+'">'+q(label)+'</span>'}
 function positionBadge(p){return p.lat==null||p.lng==null?'位置なし':p.source==='guide'?'概略位置':p.source==='tottori-city-poi'?'公式座標':'位置あり'}
 function badgesFor(p,row){
@@ -161,6 +185,76 @@ function reloadMapTiles(){
  switchMapProvider(mapProvider);
  toast('地図を再読み込みします');
 }
+// One-handed zoom: tap twice, keep the second touch down, slide upward to
+// zoom in (downward to zoom out). Ordinary panning and two-finger pinch remain.
+function setupDoubleTapSlideZoom(map){
+ if(!('ontouchstart' in window))return;
+ const host=map.getContainer();
+ // The standard Leaflet dblclick handler would otherwise double-zoom on iOS.
+ map.doubleClickZoom.disable();
+ let lastTap=null,firstTouch=null,gesture=null;
+ const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+ const coord=t=>({x:t.clientX,y:t.clientY});
+ const finish=(allowTap)=>{
+  if(!gesture)return;
+  const g=gesture;gesture=null;
+  if(allowTap&&!g.moved){
+   map.setZoomAround(g.anchor,Math.min(18,g.zoom+1),{animate:true});
+  }
+  if(g.dragEnabled)map.dragging.enable();
+ };
+ host.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1){firstTouch=null;lastTap=null;finish(false);return}
+  const finger=coord(e.touches[0]),now=Date.now();
+  if(lastTap&&now-lastTap.at<=380&&dist(finger,lastTap)<=38){
+   const rect=host.getBoundingClientRect();
+   const p=L.point(finger.x-rect.left,finger.y-rect.top);
+   gesture={anchor:map.containerPointToLatLng(p),startY:finger.y,zoom:map.getZoom(),
+    moved:false,dragEnabled:map.dragging.enabled(),lastUpdate:0};
+   firstTouch=null;lastTap=null;
+   map.dragging.disable();
+   if(e.cancelable)e.preventDefault();
+   e.stopPropagation();
+   return;
+  }
+  firstTouch={...finger,at:now,moved:false};
+ },{capture:true,passive:false});
+ host.addEventListener('touchmove',e=>{
+  if(gesture){
+   if(e.touches.length!==1){finish(false);return}
+   if(e.cancelable)e.preventDefault();
+   e.stopPropagation();
+   const y=e.touches[0].clientY,delta=gesture.startY-y;
+   if(Math.abs(delta)>=8)gesture.moved=true;
+   if(gesture.moved){
+    const now=Date.now();
+    if(now-gesture.lastUpdate>=35){
+     const z=Math.max(5,Math.min(18,Math.round((gesture.zoom+delta/95)*4)/4));
+     if(z!==map.getZoom())map.setZoomAround(gesture.anchor,z,{animate:false});
+     gesture.lastUpdate=now;
+    }
+   }
+   return;
+  }
+  if(firstTouch&&e.touches.length===1&&dist(coord(e.touches[0]),firstTouch)>12)
+   firstTouch.moved=true;
+ },{capture:true,passive:false});
+ host.addEventListener('touchend',e=>{
+  if(gesture){
+   if(e.cancelable)e.preventDefault();
+   e.stopPropagation();
+   if(e.touches.length===0)finish(true);
+   return;
+  }
+  if(firstTouch&&e.touches.length===0){
+   if(!firstTouch.moved&&Date.now()-firstTouch.at<300)
+    lastTap={x:firstTouch.x,y:firstTouch.y,at:Date.now()};
+   else lastTap=null;
+   firstTouch=null;
+  }
+ },{capture:true,passive:false});
+ host.addEventListener('touchcancel',()=>{lastTap=null;firstTouch=null;finish(false)},{capture:true});
+}
 function mapInit(){
  if(!window.L){
   showMapFailure();
@@ -170,11 +264,13 @@ function mapInit(){
  }
  try{
   // These settings and layer URL mirror APP-003's reliably rendered map.
-  state.map=L.map('map',{zoomControl:false,scrollWheelZoom:false})
-   .setView([state.center.lat,state.center.lng],14);
+  state.map=L.map('map',{zoomControl:false,scrollWheelZoom:false,zoomSnap:0.25,tapHold:false})
+   .setView([state.center.lat,state.center.lng],16);
   switchMapProvider('gsi');
   L.control.zoom({position:'bottomleft'}).addTo(state.map);
   state.markers=L.layerGroup().addTo(state.map);
+  state.map.on('moveend',()=>{renderList();updateSearchHereButton()});
+  setupDoubleTapSlideZoom(state.map);
   refreshMapSize(80);
   window.addEventListener('resize',()=>refreshMapSize(100));
   window.addEventListener('orientationchange',()=>refreshMapSize(180));
@@ -200,9 +296,24 @@ function viewOnMap(){
  document.querySelector('.map-wrap').scrollIntoView({behavior:'smooth',block:'center'});
  refreshMapSize(160)
 }
-function updateMap(){const c=state.center;mapStamp();if(state.map){if(state.focusMarker){state.map.removeLayer(state.focusMarker);state.focusMarker=null}state.map.setView([c.lat,c.lng],13);refreshMapSize(100)}$('mapFallbackLink').href=googleMapsLink(c);$('mapNoticeLink').href=googleMapsLink(c);renderList()}
+function updateMap(){const c=state.center;mapStamp();if(state.map){if(state.focusMarker){state.map.removeLayer(state.focusMarker);state.focusMarker=null}state.map.setView([c.lat,c.lng],16);refreshMapSize(100)}$('mapFallbackLink').href=googleMapsLink(c);$('mapNoticeLink').href=googleMapsLink(c);renderList()}
 let reqSeq=0;
-async function fetchPlaces(extra=''){const seq=++reqSeq;state.loading=true;$('message').textContent='施設を探しています…';try{const c=state.center;const qs=new URLSearchParams({center:`${c.lng},${c.lat}`,radius:'6000',limit:'200'});if(extra)qs.set('q',extra);const controller=new AbortController();const tm=setTimeout(()=>controller.abort(),11000);let response;try{response=await fetch(`${API}?${qs}`,{signal:controller.signal})}finally{clearTimeout(tm)}if(!response.ok)throw new Error('HTTP '+response.status);const json=await response.json();if(seq!==reqSeq)return;state.results=(Array.isArray(json.results)?json.results:[]).map(normalize).filter(Boolean).filter(p=>state.adultOK||p.type!=='adult');if(extra==='風俗 ソープ キャバクラ ホストクラブ')state.results=state.results.filter(p=>p.type==='adult');state.lastFetch=Date.now();}catch(err){if(seq!==reqSeq)return;state.results=[];$('message').textContent='施設データが読み込めません。参考スポットのみ表示します。';console.warn('OpenPOI search unavailable',err)}finally{if(seq===reqSeq){state.loading=false;renderList();checkNear()}}}
+async function fetchPlaces(extra=''){
+ const seq=++reqSeq;
+ state.loading=true;
+ $('message').textContent='施設を探しています…';
+ try{
+  const bounds=state.map?.getBounds();
+  const useBounds=!!bounds?.isValid();
+  const center=state.map?state.map.getCenter():state.center;
+  const qs=new URLSearchParams({center:`${center.lng},${center.lat}`,limit:'200'});
+  if(useBounds){
+   qs.set('bbox',[bounds.getWest(),bounds.getSouth(),bounds.getEast(),bounds.getNorth()].join(','));
+  }else qs.set('radius','6000');
+  state.lastSearchedCenter={lat:center.lat,lng:center.lng};
+  state.lastSearchedZoom=state.map?.getZoom()??16;
+  updateSearchHereButton();
+  if(extra)qs.set('q',extra);const controller=new AbortController();const tm=setTimeout(()=>controller.abort(),11000);let response;try{response=await fetch(`${API}?${qs}`,{signal:controller.signal})}finally{clearTimeout(tm)}if(!response.ok)throw new Error('HTTP '+response.status);const json=await response.json();if(seq!==reqSeq)return;state.results=(Array.isArray(json.results)?json.results:[]).map(normalize).filter(Boolean).filter(p=>state.adultOK||p.type!=='adult');if(extra==='風俗 ソープ キャバクラ ホストクラブ')state.results=state.results.filter(p=>p.type==='adult');state.lastFetch=Date.now();}catch(err){if(seq!==reqSeq)return;state.results=[];$('message').textContent='施設データが読み込めません。参考スポットのみ表示します。';console.warn('OpenPOI search unavailable',err)}finally{if(seq===reqSeq){state.loading=false;renderList();updateSearchHereButton();checkNear()}}}
 function openDetail(p){
  state.selected=p;const row=eventFor(p,'seen');
  $('detailType').textContent=(TYPES[p.type]||TYPES.other)[1];
@@ -237,5 +348,5 @@ function drawWrapped(ctx,text,x,y,maxWidth,lineHeight,maxLines){const chars=Arra
 function makeCanvas(){const total=dataRows().length,rows=dataRows().slice(0,60);const w=900,top=240,rowH=88,h=Math.max(480,top+Math.max(1,rows.length)*rowH+100);const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#f6f2e6';x.fillRect(0,0,w,h);x.fillStyle='#253348';x.font='bold 56px sans-serif';x.fillText('とっとりトリップ',60,100);x.font='24px sans-serif';x.fillText(new Date().toLocaleDateString('ja-JP'),62,150);x.fillText(`みつけた ${rows.filter(r=>r.seenAt).length}   すれ違い ${rows.filter(r=>r.nearAt).length}   訪れた ${rows.filter(r=>r.visitedAt).length}`,60,194);rows.forEach((r,i)=>{const y=top+i*rowH;x.fillStyle=i%2?'#f0ebdd':'#fffdf5';x.fillRect(45,y-12,w-90,rowH-4);x.fillStyle='#253348';x.font='bold 25px sans-serif';drawWrapped(x,r.place.name,60,y+23,650,26,1);x.font='20px sans-serif';x.fillStyle='#6b727b';x.fillText(`${rank(r)}  ${stamp(r.visitedAt||r.nearAt||r.seenAt)}`,62,y+56)});x.fillStyle='#253348';x.font='18px sans-serif';x.fillText(`TOTTORI TRIP  ·  OpenPOI API  ·  ${rows.length}/${total}件`,50,h-32);return c}
 async function imageExport(){try{const c=makeCanvas();const blob=await new Promise(resolve=>c.toBlob(resolve,'image/png'));if(!blob)throw Error('png');const file=new File([blob],'tottori-trip.png',{type:'image/png'});if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:'とっとりトリップ'});return}catch(err){if(err.name==='AbortError')return}}download(blob,'tottori-trip.png');toast('旅帖の画像を作成しました')}catch{toast('画像を作成できませんでした')}}
 function openGoogle(){const p=state.selected;if(p)window.open(googleMapsLink(p),'_blank','noopener')}
-function init(){mapInit();$('area').addEventListener('change',resetArea);$('locateBtn').addEventListener('click',locate);$('trackBtn').addEventListener('click',toggleTracking);$('searchForm').addEventListener('submit',doSearch);document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>chooseFilter(b.dataset.filter)));$('placesTab').addEventListener('click',()=>showTab('places'));$('journalTab').addEventListener('click',()=>showTab('journal'));$('visitBtn').addEventListener('click',()=>recordClick('visited'));$('nearBtn').addEventListener('click',()=>recordClick('near'));$('googleMapsBtn').addEventListener('click',openGoogle);$('viewOnMapBtn').addEventListener('click',viewOnMap);$('mapSourceBtn').addEventListener('click',changeMapProvider);$('mapRetryBtn').addEventListener('click',reloadMapTiles);$('mapFallbackRetryBtn').addEventListener('click',reloadMapTiles);$('infoBtn').addEventListener('click',()=>$('info').showModal());$('adultConfirm').addEventListener('click',()=>{state.adultOK=true;$('adultDialog').close();chooseFilter('adult')});$('adultCancel').addEventListener('click',()=>$('adultDialog').close());$('imageBtn').addEventListener('click',imageExport);$('printBtn').addEventListener('click',()=>{renderJournal();window.print()});$('backupBtn').addEventListener('click',backup);$('restoreFile').addEventListener('change',restore);$('journalCount').textContent=Object.keys(state.journal).length;renderList();fetchPlaces();}
+function init(){mapInit();$('area').addEventListener('change',resetArea);$('locateBtn').addEventListener('click',locate);$('trackBtn').addEventListener('click',toggleTracking);$('searchForm').addEventListener('submit',doSearch);$('searchHereBtn').addEventListener('click',searchVisibleMap);document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>chooseFilter(b.dataset.filter)));$('placesTab').addEventListener('click',()=>showTab('places'));$('journalTab').addEventListener('click',()=>showTab('journal'));$('visitBtn').addEventListener('click',()=>recordClick('visited'));$('nearBtn').addEventListener('click',()=>recordClick('near'));$('googleMapsBtn').addEventListener('click',openGoogle);$('viewOnMapBtn').addEventListener('click',viewOnMap);$('mapSourceBtn').addEventListener('click',changeMapProvider);$('mapRetryBtn').addEventListener('click',reloadMapTiles);$('mapFallbackRetryBtn').addEventListener('click',reloadMapTiles);$('infoBtn').addEventListener('click',()=>$('info').showModal());$('adultConfirm').addEventListener('click',()=>{state.adultOK=true;$('adultDialog').close();chooseFilter('adult')});$('adultCancel').addEventListener('click',()=>$('adultDialog').close());$('imageBtn').addEventListener('click',imageExport);$('printBtn').addEventListener('click',()=>{renderJournal();window.print()});$('backupBtn').addEventListener('click',backup);$('restoreFile').addEventListener('change',restore);$('journalCount').textContent=Object.keys(state.journal).length;renderList();fetchPlaces();}
 if(document.readyState==='complete')init();else window.addEventListener('load',init,{once:true});
