@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#27334a"><meta name="description" content="鳥取の旅で訪れた・見つけた・すれ違った場所を、ひとつの旅帖に。">
+<title>とっとりトリップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoKaQ5j8a5xdFsM=" crossorigin="">
+<link rel="stylesheet" href="styles.css">
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script defer src="app.js"></script>
+</head>
+<body>
+<div class="shell">
+  <header class="header">
+    <div class="identity"><svg class="cat" viewBox="0 0 20 20" shape-rendering="crispEdges" aria-label="ふてぶてしいドット絵のネコ" role="img">
+      <path fill="#24334b" d="M2 2h4v2h8V2h4v5h1v9h-2v2H3v-2H1V7h1z"/>
+      <path fill="#d9d5ca" d="M3 4h2v3h10V4h2v11h-2v2H5v-2H3z"/>
+      <path fill="#dd958d" d="M4 5h1v2H4zm11 0h1v2h-1z"/>
+      <path fill="#24334b" d="M5 9h4v1H5zm7 0h4v1h-4zM7 11h2v2H7zm6 0h2v2h-2zm-3 2h2v1h-2z"/>
+      <path fill="#ce7563" d="M4 12h2v1H4zm11 0h2v1h-2z"/>
+      <path fill="#24334b" d="M9 15h1v1H9zm1 1h3v1h-3z"/>
+    </svg><div class="brand">TOTTORI TRIP</div></div>
+    <button type="button" class="icon-btn" id="infoBtn" aria-label="使い方・出典">？</button>
+  </header>
+  <main>
+    <section class="hud panel" aria-label="旅の状況">
+      <div class="status"><span class="dot" id="gpsDot"></span><span id="gpsStatus">鳥取の地図を表示中</span></div>
+      <div class="hud-actions"><button id="locateBtn" class="primary">◎ 現在地</button><button id="trackBtn" aria-pressed="false">◇ すれ違い OFF</button></div>
+    </section>
+    <section class="explorer">
+      <div class="toolbar">
+        <label class="sr-only" for="area">エリア</label><select id="area"><option value="tottori">鳥取市</option><option value="kurayoshi">倉吉</option><option value="yonago">米子</option><option value="sakaiminato">境港</option></select>
+        <form id="searchForm" role="search"><label class="sr-only" for="search">名前で探す</label><input id="search" autocomplete="off" placeholder="名前で探す" maxlength="60"><button type="submit" aria-label="検索">⌕</button></form>
+      </div>
+      <div class="filters" role="group" aria-label="ジャンル">
+        <button class="chip active" data-filter="all" aria-pressed="true">すべて</button><button class="chip" data-filter="sight">名所</button><button class="chip" data-filter="history">史跡</button><button class="chip" data-filter="literature">文学</button><button class="chip" data-filter="people">偉人</button><button class="chip" data-filter="food">飲食</button><button class="chip" data-filter="adult">風俗</button>
+      </div>
+      <div class="map-wrap"><div id="map" role="region" aria-label="鳥取の施設地図"></div><div class="map-fallback" id="mapFallback" hidden>地図の読込に失敗しました。下の一覧から探せます。</div><div class="map-stamp" id="mapStamp">鳥取市</div></div>
+    </section>
+    <section class="tabs" aria-label="表示切替"><button id="placesTab" class="tab active" aria-pressed="true">みつける <span id="placesCount">0</span></button><button id="journalTab" class="tab" aria-pressed="false">旅帖 <span id="journalCount">0</span></button></section>
+    <section id="placesPane"><div id="message" class="message" role="status" aria-live="polite">地図の近くを探しています…</div><div id="places" class="cards"></div></section>
+    <section id="journalPane" hidden><div class="journal-stats" id="stats"></div><div id="journal" class="cards"></div><div class="export"><button id="imageBtn">▣ 画像にする</button><button id="printBtn">▤ PDFにする</button><button id="backupBtn">↓ バックアップ</button><label class="import-btn" for="restoreFile">↑ 復元</label><input id="restoreFile" type="file" accept="application/json,.json" hidden></div></section>
+  </main>
+  <footer><span>© <a href="https://openpoiapi.com/attribution.html" target="_blank" rel="noopener">OpenPOI API</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></span><span>旅の記録はこの端末に保存</span></footer>
+</div>
+<dialog id="detail"><form method="dialog" class="dialog-head"><span id="detailType">SPOT</span><button aria-label="閉じる">×</button></form><h2 id="detailName"></h2><div class="detail-meta" id="detailMeta"></div><p id="detailNote"></p><div id="detailTags"></div><div class="detail-actions"><button id="visitBtn" class="primary" type="button">✓ 訪れた</button><button id="nearBtn" type="button">◇ すれ違った</button><button id="googleMapsBtn" type="button">↗ 地図</button></div></dialog>
+<dialog id="info"><form method="dialog" class="dialog-head"><span>あそびかた</span><button aria-label="閉じる">×</button></form><div class="instructions"><p><b>みつけた</b>：気になる場所を開くと旅帖に残ります。</p><p><b>すれ違った</b>：近くを通ったら記録。自動記録は「すれ違い ON」時のみ、画面を開いている間だけ動きます。</p><p><b>訪れた</b>：実際に行ったら自分で記録。</p><p>距離は目安。GPS精度や登録地点のずれがあります。表示しただけでは訪問とはなりません。</p><p>近くの施設を探す際、検索中心の座標をOpenPOI APIに送信します。GPSの移動履歴は保存しません。旅帖はこの端末に保存され、消去すると失われます。バックアップをおすすめします。</p><p>施設データ：<a href="https://openpoiapi.com/attribution.html" target="_blank" rel="noopener">OpenPOI API 出典・ライセンス</a>。文化スポットの補助情報：<a href="https://www.tottori-guide.jp/" target="_blank" rel="noopener">とっとり旅</a>、<a href="https://www.pref.tottori.lg.jp/tottori_bungaku_tanbo_map/" target="_blank" rel="noopener">鳥取県文学探訪</a>。</p></div></dialog>
+<dialog id="adultDialog"><form method="dialog" class="dialog-head"><span>成人向けの場所</span><button aria-label="閉じる">×</button></form><p>このジャンルは18歳以上の方向けです。施設の分類や営業状況は保証されません。</p><div class="detail-actions"><button id="adultConfirm" type="button" class="primary">18歳以上です</button><button id="adultCancel" type="button">戻る</button></div></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body></html>
