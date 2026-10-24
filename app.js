@@ -131,7 +131,44 @@ function badgesFor(p,row){
  else if(row?.seenAt)parts.push(badgeHTML('発見','seen'));
  return '<span class="badges">'+parts.join('')+'</span>';
 }
-function fillPlaceCard(place,row){const btn=document.createElement('button');btn.className='place-card';btn.type='button';btn.dataset.id=place.id;const [icon,label]=TYPES[place.type]||TYPES.other;btn.innerHTML=`<span class="symbol" aria-hidden="true">${q(icon)}</span><span class="content"><span class="name">${q(place.name)}</span>${badgesFor(place,row)}<span class="minor">${q(prettyDist(place))}</span></span><span class="arrow" aria-hidden="true">›</span>`;btn.addEventListener('click',()=>openDetail(place));return btn}
+
+const PIXEL_ICONS={
+ scroll:'<path fill="#9ebf77" d="M2 2h3v2h6V2h3v12h-3v-2H5v2H2z"/><path fill="#fff3dc" d="M5 4h6v8H5z"/><path fill="#26334a" d="M6 6h4v1H6zm0 2h4v1H6zm1 2h3v1H7z"/>',
+ book:'<path fill="#b592c3" d="M1 3h6l1 2 1-2h6v11H9l-1 1-1-1H1z"/><path fill="#fff3dc" d="M2 4h5v8H2zm7 0h5v8H9z"/><path fill="#527aa3" d="M3 6h3v1H3zm0 2h3v1H3zm7-2h3v1h-3zm0 2h3v1h-3z"/>',
+ bust:'<path fill="#7ea4c6" d="M6 2h4v1h2v5h-2v2h2l2 3v2H2v-2l2-3h2V8H4V3h2z"/><path fill="#f6e6c7" d="M5 4h6v4H5z"/><path fill="#26334a" d="M6 5h1v1H6zm3 0h1v1H9z"/>',
+ temple:'<path fill="#314e76" d="M7 1h2v2h3v2h2v2H2V5h2V3h3z"/><path fill="#fff3dc" d="M3 7h10v7H3z"/><path fill="#bd9366" d="M4 8h8v1H4zm0 5h8v1H4z"/><path fill="#26334a" d="M6 9h4v4H6z"/>',
+ torii:'<path fill="#df786a" d="M2 2h12v2H2zm1 3h10v2H3zm2 2h2v8H5zm4 0h2v8H9z"/><path fill="#efc767" d="M7 5h2v2H7z"/>',
+ castle:'<path fill="#26334a" d="M6 1h4v2h3v3h2v9H1V6h2V3h3z"/><path fill="#8bb0c8" d="M4 5h8v3H4z"/><path fill="#fff3dc" d="M3 9h10v5H3z"/><path fill="#26334a" d="M7 10h2v4H7z"/>',
+ post:'<path fill="#26334a" d="M1 3h14v11H1z"/><path fill="#fff3dc" d="M2 4h12v9H2z"/><path fill="#e88d7d" d="M3 5h10v2H3z"/><path fill="#26334a" d="M3 8l5 3 5-3v1l-5 4-5-4z"/>',
+ food:'<path fill="#26334a" d="M1 7h14v4l-3 3H4l-3-3z"/><path fill="#e88d7d" d="M2 8h12v3H2z"/><path fill="#fff3dc" d="M5 3h2v4H5zm4-2h2v6H9z"/><path fill="#9bbf72" d="M6 8h4v2H6z"/>',
+ night:'<path fill="#f0c35b" d="M9 1h3v2h-2v7H9V1zM4 4h5v8H4l-2-4z"/><path fill="#d3e4ea" d="M13 5h2v2h-2zm-9-3h1v1H4z"/>',
+ tree:'<path fill="#8fc06b" d="M6 1h4v2h3v6h-3v2H4V9H2V4h4z"/><path fill="#a77951" d="M7 10h3v5H7z"/>',
+ museum:'<path fill="#314e76" d="M1 5h14v2H1zM8 1l7 4H1z"/><path fill="#fff3dc" d="M2 7h12v6H2z"/><path fill="#7ea4c6" d="M4 7h2v6H4zm3 0h2v6H7zm3 0h2v6h-2z"/><path fill="#314e76" d="M1 13h14v2H1z"/>',
+ building:'<path fill="#314e76" d="M3 1h10v14H3z"/><path fill="#fff3dc" d="M4 3h8v11H4z"/><path fill="#7ea4c6" d="M5 4h2v2H5zm4 0h2v2H9zM5 8h2v2H5zm4 0h2v2H9z"/>'
+};
+function iconKind(p){
+ const n=String(p.name||'');
+ if(/郵便局|郵便ポスト|ゆうちょ/.test(n))return 'post';
+ if(/神社|神宮|大社/.test(n))return 'torii';
+ if(/寺院|寺$|寺（|寺\(/.test(n))return 'temple';
+ if(/城跡|城址|城郭/.test(n))return 'castle';
+ if(/図書館|文庫/.test(n))return 'book';
+ if(/歌碑|句碑|文学の小径|詩碑|文学/.test(n))return 'scroll';
+ if(/記念館|資料館|博物館|歴史館|美術館/.test(n))return p.type==='people'?'bust':'museum';
+ if(p.type==='people')return 'bust';
+ if(p.type==='literature')return 'scroll';
+ if(p.type==='food')return 'food';
+ if(p.type==='adult')return 'night';
+ if(p.type==='sight'&&/森|公園|山|砂丘|自然/.test(n))return 'tree';
+ if(p.type==='history')return 'museum';
+ return 'building'
+}
+function pixelIcon(p){
+ const kind=iconKind(p);
+ return '<svg class="pixel-art" viewBox="0 0 16 16" width="30" height="30" aria-hidden="true" focusable="false" shape-rendering="crispEdges">'+PIXEL_ICONS[kind]+'</svg>'
+}
+
+function fillPlaceCard(place,row){const btn=document.createElement('button');btn.className='place-card';btn.type='button';btn.dataset.id=place.id;const [,label]=TYPES[place.type]||TYPES.other;btn.innerHTML=`<span class="symbol" aria-hidden="true">${pixelIcon(place)}</span><span class="content"><span class="name">${q(place.name)}</span>${badgesFor(place,row)}<span class="minor">${q(prettyDist(place))}</span></span><span class="arrow" aria-hidden="true">›</span>`;btn.addEventListener('click',()=>openDetail(place));return btn}
 function renderList(){state.places=allPlaces();let list=filtered();$('placesCount').textContent=list.length;$('places').replaceChildren(...list.map(p=>fillPlaceCard(p,state.journal[p.id])));if(!state.loading)$('message').textContent=list.length?`${list.length}か所`: 'この条件の場所はありません。エリアやジャンルを変えてください。';drawMarkers(list)}
 function renderJournal(){let rows=Object.values(state.journal).filter(row=>row&&row.place).sort((a,b)=>new Date(b.visitedAt||b.nearAt||b.seenAt||0)-new Date(a.visitedAt||a.nearAt||a.seenAt||0));$('journalCount').textContent=rows.length;$('stats').innerHTML=[['みつけた',rows.filter(r=>r.seenAt).length],['すれ違い',rows.filter(r=>r.nearAt).length],['訪れた',rows.filter(r=>r.visitedAt).length]].map(([k,v])=>`<div class="stat"><b>${v}</b><small>${k}</small></div>`).join('');$('journal').replaceChildren(...(rows.length?rows.map(r=>fillPlaceCard(r.place,r)):[Object.assign(document.createElement('div'),{className:'empty',textContent:'旅の記録はまだありません。'})]));}
 function drawMarkers(list){if(!state.map||!window.L)return;state.markers.clearLayers();for(const p of list){if(p.lat==null||p.lng==null)continue;const icon=L.divIcon({className:'',html:`<div class="pixel-pin c-${TYPES[p.type]?p.type:'other'}"></div>`,iconSize:[22,22],iconAnchor:[11,11]});const marker=L.marker([p.lat,p.lng],{icon});marker.on('click',()=>openDetail(p));marker.addTo(state.markers)}if(state.gps){L.circleMarker([state.gps.lat,state.gps.lng],{radius:6,color:'#fff',weight:3,fillColor:'#276c98',fillOpacity:1}).addTo(state.markers)}}
