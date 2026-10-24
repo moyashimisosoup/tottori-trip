@@ -181,6 +181,76 @@ function reloadMapTiles(){
  switchMapProvider(mapProvider);
  toast('地図を再読み込みします');
 }
+// One-handed zoom: tap twice, keep the second touch down, slide upward to
+// zoom in (downward to zoom out). Ordinary panning and two-finger pinch remain.
+function setupDoubleTapSlideZoom(map){
+ if(!('ontouchstart' in window))return;
+ const host=map.getContainer();
+ // The standard Leaflet dblclick handler would otherwise double-zoom on iOS.
+ map.doubleClickZoom.disable();
+ let lastTap=null,firstTouch=null,gesture=null;
+ const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+ const coord=t=>({x:t.clientX,y:t.clientY});
+ const finish=(allowTap)=>{
+  if(!gesture)return;
+  const g=gesture;gesture=null;
+  if(allowTap&&!g.moved){
+   map.setZoomAround(g.anchor,Math.min(18,g.zoom+1),{animate:true});
+  }
+  if(g.dragEnabled)map.dragging.enable();
+ };
+ host.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1){firstTouch=null;lastTap=null;finish(false);return}
+  const finger=coord(e.touches[0]),now=Date.now();
+  if(lastTap&&now-lastTap.at<=380&&dist(finger,lastTap)<=38){
+   const rect=host.getBoundingClientRect();
+   const p=L.point(finger.x-rect.left,finger.y-rect.top);
+   gesture={anchor:map.containerPointToLatLng(p),startY:finger.y,zoom:map.getZoom(),
+    moved:false,dragEnabled:map.dragging.enabled(),lastUpdate:0};
+   firstTouch=null;lastTap=null;
+   map.dragging.disable();
+   if(e.cancelable)e.preventDefault();
+   e.stopPropagation();
+   return;
+  }
+  firstTouch={...finger,at:now,moved:false};
+ },{capture:true,passive:false});
+ host.addEventListener('touchmove',e=>{
+  if(gesture){
+   if(e.touches.length!==1){finish(false);return}
+   if(e.cancelable)e.preventDefault();
+   e.stopPropagation();
+   const y=e.touches[0].clientY,delta=gesture.startY-y;
+   if(Math.abs(delta)>=8)gesture.moved=true;
+   if(gesture.moved){
+    const now=Date.now();
+    if(now-gesture.lastUpdate>=35){
+     const z=Math.max(5,Math.min(18,Math.round((gesture.zoom+delta/95)*4)/4));
+     if(z!==map.getZoom())map.setZoomAround(gesture.anchor,z,{animate:false});
+     gesture.lastUpdate=now;
+    }
+   }
+   return;
+  }
+  if(firstTouch&&e.touches.length===1&&dist(coord(e.touches[0]),firstTouch)>12)
+   firstTouch.moved=true;
+ },{capture:true,passive:false});
+ host.addEventListener('touchend',e=>{
+  if(gesture){
+   if(e.cancelable)e.preventDefault();
+   e.stopPropagation();
+   if(e.touches.length===0)finish(true);
+   return;
+  }
+  if(firstTouch&&e.touches.length===0){
+   if(!firstTouch.moved&&Date.now()-firstTouch.at<300)
+    lastTap={x:firstTouch.x,y:firstTouch.y,at:Date.now()};
+   else lastTap=null;
+   firstTouch=null;
+  }
+ },{capture:true,passive:false});
+ host.addEventListener('touchcancel',()=>{lastTap=null;firstTouch=null;finish(false)},{capture:true});
+}
 function mapInit(){
  if(!window.L){
   showMapFailure();
