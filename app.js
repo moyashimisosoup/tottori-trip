@@ -19,12 +19,12 @@ const GUIDES=[
  {name:'尾崎放哉生誕の地',type:'people',lat:null,lng:null,area:'tottori',address:'鳥取市吉方町2丁目',note:'鳥取出身の俳人、尾崎放哉の生誕地。',url:'https://www.pref.tottori.lg.jp/dd.aspx?menuid=73376',verified:false},
  {name:'倉吉白壁土蔵群',type:'history',lat:35.4333,lng:133.8249,area:'kurayoshi',note:'白壁の土蔵が並ぶ歴史的な町並み。',url:'https://www.tottori-guide.jp/',verified:false},
  {name:'三朝温泉',type:'sight',lat:35.4083,lng:133.8941,area:'kurayoshi',note:'三徳川沿いに広がる温泉街。',url:'https://www.tottori-guide.jp/',verified:false},
- {name:'青山剛昌ふるさと館',type:'people',lat:35.4944,lng:133.7570,area:'kurayoshi',note:'漫画家・青山剛昌の故郷にある記念施設。',url:'https://www.pref.tottori.lg.jp/260655.htm',verified:false},
- {name:'水木しげるロード',type:'people',lat:35.5424,lng:133.2297,area:'sakaiminato',note:'水木しげるゆかりの境港の通り。',url:'https://www.pref.tottori.lg.jp/260655.htm',verified:false},
- {name:'水木しげる記念館',type:'people',lat:35.5430,lng:133.2248,area:'sakaiminato',note:'漫画家・水木しげるを紹介する記念館。',url:'https://www.pref.tottori.lg.jp/260655.htm',verified:false},
+ {name:'青山剛昌ふるさと館',type:'people',lat:35.4980281,lng:133.7618124,area:'kurayoshi',note:'漫画家・青山剛昌の記念館。2027年の移転計画あり。',url:'https://www.gamf.jp/42.html',verified:true,relatedTypes:['literature']},
+ {name:'水木しげるロード',type:'people',lat:35.5460663,lng:133.2268863,area:'sakaiminato',note:'妖怪像が並ぶ水木しげるゆかりの通り。地点は通りの代表位置。',url:'https://mapfan.com/spots/SCYH3%2CJ%2CV0',verified:false,relatedTypes:['literature']},
+ {name:'水木しげる記念館',type:'people',lat:35.546317,lng:133.23117,area:'sakaiminato',note:'漫画家・水木しげるを紹介する記念館。',url:'https://www.navitime.co.jp/poi?spot=02301-2700043',verified:true,relatedTypes:['literature']},
  {name:'大山',type:'sight',lat:35.3710,lng:133.5465,area:'yonago',note:'伯耆富士とも呼ばれる鳥取の名峰。',url:'https://www.tottori-guide.jp/',verified:false},
  {name:'皆生温泉',type:'sight',lat:35.4574,lng:133.3628,area:'yonago',note:'日本海に面した温泉地。',url:'https://www.tottori-guide.jp/',verified:false}
-].map((p,i)=>({...p,id:'guide:'+i,source:'guide',licenses:[],attributions:[],category:p.type}));
+].map((p,i)=>({...p,id:'guide:'+i,source:p.verified?'curated':'guide',licenses:[],attributions:p.verified?['施設公開情報・地点照合']:[],category:p.type}));
 
 // Verified positions published by Tottori City (CC BY). Each marker is an individual
 // monument, not a guessed home address or an estimated birthplace.
@@ -37,6 +37,26 @@ const HOSAI_MONUMENTS=[
  {name:'尾崎放哉句碑（城下町とっとり交流館庭・海）',lat:35.49903477777778,lng:134.2370066388889,address:'鳥取市元大工町1',note:'交流館の庭に建立された句碑。'},
  {name:'尾崎放哉句碑（修立小学校校門前）',lat:35.48887613888889,lng:134.24248733333334,address:'鳥取市立川町5丁目339',note:'修立小学校の校門前に建立された句碑。'}
 ].map((p,i)=>({...p,id:'hosai:'+i,type:'literature',relatedTypes:['people'],area:'tottori',category:'literature',source:'tottori-city-poi',verified:true,licenses:['CC BY'],attributions:['鳥取市「尾崎放哉句碑の建立場所」'],url:HOSAI_DATASET}));
+
+
+const CULTURE_SPOTS=[
+ {name:'鳥取県立図書館（ふるさと文学コーナー）',lat:35.50237301,lng:134.23750605,address:'鳥取市尚徳町101',area:'tottori',type:'literature',note:'尾崎放哉・尾崎翠・生田春月など郷土文学の関連資料を紹介。',url:'https://www.library.pref.tottori.jp/information/post.html',source:'tottori-pref-library'},
+ {name:'大伴家持歌碑',lat:35.474227,lng:134.272054,address:'鳥取市国府町庁198',area:'tottori',type:'literature',relatedTypes:['people'],note:'因幡国守を務めた万葉歌人、大伴家持の歌碑。',url:'https://www.cgr.mlit.go.jp/tottori/tono/html/kankou.html',source:'mlit'},
+ {name:'因幡万葉歴史館',lat:35.472792,lng:134.274692,address:'鳥取市国府町町屋726',area:'tottori',type:'literature',relatedTypes:['people'],note:'大伴家持や因幡の万葉文化に出会える施設。',url:'https://www.cgr.mlit.go.jp/tottori/tono/html/kankou.html',source:'mlit'},
+ {name:'用瀬文学の小径（案内地点）',lat:35.3427526,lng:134.2074526,address:'鳥取市用瀬町用瀬',area:'tottori',type:'literature',relatedTypes:['people'],note:'句碑・歌碑をたどる散歩道。地図の地点は総合支所の代表位置で碑の正確な座標ではありません。',url:'https://www.city.tottori.lg.jp/site/komichi/',source:'reference',verified:false},
+ {name:'鳥取市立中央図書館',lat:35.491507959846835,lng:134.22702119387404,address:'鳥取市富安二丁目138-4',area:'tottori',type:'literature',note:'鳥取市立の中央図書館。',url:'https://odp-pref-tottori.tori-info.co.jp/dataset/1636/url_resource/29/content.html',source:'tottori-open-data'},
+ {name:'用瀬図書館',lat:35.3400540935308,lng:134.20394908869554,address:'鳥取市用瀬町用瀬104-2',area:'tottori',type:'literature',note:'文学の小径がある用瀬町の図書館。',url:'https://odp-pref-tottori.tori-info.co.jp/dataset/1636/url_resource/29/content.html',source:'tottori-open-data'},
+ {name:'鳥取市歴史博物館（やまびこ館）',lat:35.49898,lng:134.243974,address:'鳥取市上町88',area:'tottori',type:'history',note:'鳥取の歴史と郷土文化を知る博物館。',url:'https://odp-pref-tottori.tori-info.co.jp/dataset/1636/url_resource/22/content.html',source:'tottori-open-data'},
+ {name:'尾崎翠資料館 ゆかむりギャラリー',lat:null,lng:null,address:'岩美郡岩美町岩井546',area:'tottori',type:'literature',relatedTypes:['people'],note:'作家・尾崎翠の資料館。公開住所のみ確認済み。',url:'https://www.torican.jp/spot/detail_1447.html',source:'reference',verified:false},
+ {name:'谷口ジロー『父の暦』ゆかりの鳥取',lat:null,lng:null,address:'鳥取市内（作品の舞台）',area:'tottori',type:'literature',relatedTypes:['people'],note:'鳥取市が舞台の作品。固定の訪問地点を指定できないため参考情報。',url:'https://www.pref.tottori.lg.jp/291428.htm',source:'reference',verified:false}
+].map((p,i)=>({...p,id:'culture:'+i,verified:p.verified!==false,category:p.type,licenses:[],attributions:[p.url]}));
+const NIGHT_VENUES=[
+ {name:'club PASHA',address:'鳥取市末広温泉町758 第二小熊ビル2F',area:'tottori',note:'キャバクラ。営業情報は店の公式サイトで確認。',url:'https://www.risouzu.com/'},
+ {name:'PREMIUM PASHA CLUB',address:'鳥取市末広温泉町752-2 第一末広ビル',area:'tottori',note:'キャバクラ。営業情報は店の公式サイトで確認。',url:'https://www.risouzu.com/'},
+ {name:'PINKY（ピンキー）',address:'鳥取市末広温泉町355-2 レインボービル6F',area:'tottori',note:'スナック。性風俗店ではなく夜の飲食店。',url:'https://town-night.jp/tottori/a_1176/shop/013315/map/'},
+ {name:'club M',address:'米子市皆生温泉3丁目6-18',area:'yonago',note:'ソープランド。公開住所のみ確認済み。',url:'https://www.f-terminal.jp/tottori.html'},
+ {name:'ソウルシャドウ',address:'米子市皆生温泉3丁目6-21',area:'yonago',note:'ソープランド。公開住所のみ確認済み。',url:'https://www.f-terminal.jp/tottori.html'}
+].map((p,i)=>({...p,id:'night:'+i,type:'adult',lat:null,lng:null,verified:false,source:'reference',category:'adult',licenses:[],attributions:[p.url]}));
 
 const $=id=>document.getElementById(id);
 const TYPES={sight:['✦','名所'],history:['▥','史跡'],literature:['本','文学'],people:['★','偉人'],food:['食','飲食'],adult:['夜','風俗'],other:['・','施設']};
@@ -57,7 +77,7 @@ function status(s,ok=false){$('gpsStatus').textContent=s;$('gpsDot').classList.t
 function eventFor(p,kind){const id=idOf(p);let row=state.journal[id];if(!row){row={id,place:{...p},seenAt:null,nearAt:null,visitedAt:null};state.journal[id]=row}if(!row[kind+'At'])row[kind+'At']=new Date().toISOString();row.place={...p};save();$('journalCount').textContent=Object.keys(state.journal).length;return row}
 function rank(row){return row?.visitedAt?'訪れた':row?.nearAt?'すれ違った':row?.seenAt?'見つけた':''}
 function showTab(tab){state.tab=tab;const on=tab==='places';$('placesPane').hidden=!on;$('journalPane').hidden=on;$('placesTab').classList.toggle('active',on);$('journalTab').classList.toggle('active',!on);$('placesTab').setAttribute('aria-pressed',String(on));$('journalTab').setAttribute('aria-pressed',String(!on));if(!on)renderJournal();else renderList();refreshMapSize(90)}
-function currentGuides(){return GUIDES.filter(p=>p.area===state.area).concat(state.area==='tottori'?HOSAI_MONUMENTS:[])}
+function currentGuides(){return [...GUIDES.filter(p=>p.area===state.area),...CULTURE_SPOTS.filter(p=>p.area===state.area),...(state.area==='tottori'?HOSAI_MONUMENTS:[]),...(state.adultOK&&state.filter==='adult'?NIGHT_VENUES.filter(p=>p.area===state.area):[])]}
 function allPlaces(){const items=new Map();for(const p of [...currentGuides(),...state.results])items.set(p.id,p);return [...items.values()]}
 function matches(p){if(state.filter!=='all'&&p.type!==state.filter&&!p.relatedTypes?.includes(state.filter))return false;const term=state.query.trim().toLocaleLowerCase();if(term&&!`${p.name} ${p.address||''} ${p.note||''}`.toLocaleLowerCase().includes(term))return false;return true}
 function filtered(){
