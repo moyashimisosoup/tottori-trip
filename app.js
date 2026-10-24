@@ -91,7 +91,7 @@ let mapResizeTimer=null,mapBaseLayer=null,mapProvider='gsi',mapTileErrors=0,mapT
 function refreshMapSize(delay=80){
  if(!state.map)return;
  clearTimeout(mapResizeTimer);
- mapResizeTimer=setTimeout(()=>{if(state.map)state.map.invalidateSize({pan:false,animate:false})},delay);
+ mapResizeTimer=setTimeout(()=>{if(state.map){state.map.invalidateSize({pan:false,animate:false});inspectMapRendering()}},delay);
 }
 function mapStamp(label=''){
  const name=AREAS[state.area]?.name||'現在地';
@@ -106,6 +106,23 @@ function showMapFailure(){
  mapStamp('読込不可');
  $('mapFallbackLink').href=googleMapsLink(state.map?state.map.getCenter():state.center);
 }
+function inspectMapRendering(){
+ if(!state.map)return;
+ const host=$('map'),info=$('mapDebug');
+ if(!host||!info)return;
+ const pane=host.querySelector('.leaflet-tile-pane');
+ const tile=host.querySelector('.leaflet-tile');
+ const panePosition=pane?getComputedStyle(pane).position:'missing';
+ const tilePosition=tile?getComputedStyle(tile).position:'none';
+ const cssOK=panePosition==='absolute'&&(!tile||tilePosition==='absolute');
+ const expected=state.map.getSize();
+ const nodes=host.querySelectorAll('img.leaflet-tile');
+ const loaded=host.querySelectorAll('img.leaflet-tile-loaded').length;
+ const show=window.location.search.includes('mapdebug=1')||!cssOK;
+ info.hidden=!show;
+ if(show)info.textContent='CSS '+(cssOK?'OK':'NG')+' / DOM '+host.clientWidth+'×'+host.clientHeight+' / L '+expected.x+'×'+expected.y+' / タイル '+loaded+'/'+nodes.length+' / 失敗 '+mapTileErrors;
+ if(!cssOK)console.warn('Leaflet stylesheet missing or overridden',{panePosition,tilePosition});
+}
 function mapTileWarning(){
  if(mapTileErrors===0)return;
  $('mapNotice').hidden=false;
@@ -119,11 +136,12 @@ function switchMapProvider(next){
  mapTileLoads=0;mapTileErrors=0;
  const layer=L.tileLayer(provider.url,provider.options);
  // An error must NEVER replace the entire layer: keep healthy imagery intact.
- layer.on('tileload',()=>{mapTileLoads++});
- layer.on('tileerror',()=>{mapTileErrors++;mapTileWarning()});
+ layer.on('tileload',()=>{mapTileLoads++;inspectMapRendering()});
+ layer.on('tileerror',()=>{mapTileErrors++;mapTileWarning();inspectMapRendering()});
  layer.on('load',()=>{
   if(mapTileLoads===0&&mapTileErrors>0)showMapFailure();
   else if(mapTileLoads>0)$('mapFallback').hidden=true;
+  inspectMapRendering();
  });
  const previous=mapBaseLayer;
  mapProvider=next;mapBaseLayer=layer;
@@ -131,6 +149,7 @@ function switchMapProvider(next){
  $('mapNotice').hidden=true;
  mapStamp();
  layer.addTo(state.map);
+ setTimeout(inspectMapRendering,350);
  if(previous)state.map.removeLayer(previous);
  refreshMapSize();
 }

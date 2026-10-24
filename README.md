@@ -16,6 +16,14 @@ GitHub Pages: 新規リポジトリに3ファイルと `README.md` をpushし、
 - 旅帖から画像PNGとブラウザ印刷の「PDFとして保存」を利用。バックアップ/復元JSONも提供。
 - 風俗ジャンルは18歳以上の本人確認ボタン後のみ表示。検索元の提供範囲・業態の曖昧さから、実店舗網羅は保証しない。
 
+## iPhone地図崩れの追加調査（2026-10-25）
+
+正常動作するマンションポエムとの違いは、鳥取旅帖がLeafletのCSSを外部CDNのSRI付きタグで読み込んでいること、独自の地図ラッパーとUIがあること。CSS取得・適用の失敗が「タイルが1枚だけ見える」状態に関与する可能性を切り分けるため、[Leaflet v1.9.4の公式CSS](https://github.com/Leaflet/Leaflet/blob/v1.9.4/dist/leaflet.css)を `vendor/leaflet.css` に同梱して自サイトから配信する。元のBSD 2-Clause LICENSEは `vendor/LEAFLET-LICENSE.txt` に同梱。
+
+JS読み込みタグはマンションポエムと同じSRIなしの公式unpkg配信にした。別ライブラリへの変更や地図APIの差し替えは行っていない。
+
+**任意の診断**：`https://moyashimisosoup.github.io/tottori-trip/?mapdebug=1` を開くと地図内に `CSS OK/NG`、DOMサイズ/Leaflet内部サイズ、読み込んだタイル/総数、エラー数を表示する。通常のURLでは非表示。CSS NGの場合は自動表示。iPhoneの解消は実機確認待ち。
+
 ## 現行の地図表示（2026-10-25）
 
 - iPhoneで地図タイルが1〜2枚しか表示されない問題に対し、[APP-003 マンションポエム](https://github.com/yama-books/mansion-poet)の正常動作実装を参照。
