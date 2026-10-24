@@ -167,7 +167,11 @@ function mapInit(){
  window.addEventListener('resize',()=>refreshMapSize(150));
  window.addEventListener('orientationchange',()=>refreshMapSize(300));
  document.addEventListener('visibilitychange',()=>{
-  if(!document.hidden){refreshMapSize(150);if(mapBaseLayer)mapBaseLayer.redraw()}
+  if(!document.hidden){
+   refreshMapSize(150);
+   // Do not re-download healthy tiles on every app switch.
+   if(mapBaseLayer?.isLoading()||!$('mapFallback').hidden)switchMapProvider(mapProvider);
+  }
  });
  if(typeof ResizeObserver==='function'){
   const observer=new ResizeObserver(()=>refreshMapSize(100));
