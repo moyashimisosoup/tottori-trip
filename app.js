@@ -4,6 +4,11 @@ const DEMO={lat:35.49314,lng:134.22564,accuracy:0};
 const LITERARY_SOURCE="https://odp-pref-tottori.tori-info.co.jp/dataset/1641.html";
 // Publicly documented monument coordinates. The app does not store the user's GPS coordinates.
 const SEEDS=[
+ {id:"local:tottori-sanddunes",name:"鳥取砂丘（ビジターセンター付近）",lat:35.544201,lng:134.236631,kind:"culture",address:"鳥取市福部町",source:"鳥取市観光サイト・位置参照",licenses:[],attributions:["鳥取市観光サイト / NAVITIME地点情報"]},
+ {id:"local:jinpukaku",name:"仁風閣（保存修理中）",lat:35.5071401944,lng:134.2374688056,kind:"culture",address:"鳥取市東町2丁目",source:"鳥取県オープンデータ",licenses:["CC BY"],attributions:["鳥取県オープンデータ 文化観光施設：重要文化財"]},
+ {id:"local:mizuki-museum",name:"水木しげる記念館",lat:35.546317,lng:133.23117,kind:"people",address:"境港市本町",source:"境港市・位置参照",licenses:[],attributions:["水木しげる記念館 / NAVITIME地点情報"]},
+ {id:"local:aoyama-museum",name:"青山剛昌ふるさと館",lat:35.4980281,lng:133.7618124,kind:"people",address:"北栄町由良宿",source:"北栄町観光協会・位置参照",licenses:[],attributions:["北栄町観光協会 / MapFan地点情報"]},
+
  {id:"city:hosai-kozenji",name:"尾崎放哉句碑（興禅寺）",lat:35.5039851944,lng:134.2412451944,kind:"literature",tags:["literature","people"],address:"鳥取市栗谷町",source:"鳥取市オープンデータ",licenses:["CC BY"],attributions:["鳥取市「尾崎放哉句碑の建立場所」"]},
  {id:"city:hosai-jokamachi",name:"尾崎放哉句碑（城下町とっとり交流館）",lat:35.4989317222,lng:134.2369208055,kind:"literature",tags:["literature","people"],address:"鳥取市元大工町",source:"鳥取市オープンデータ",licenses:["CC BY"],attributions:["鳥取市「尾崎放哉句碑の建立場所」"]}
 ];
