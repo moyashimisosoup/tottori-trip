@@ -3,7 +3,7 @@
 ## PoC 1: ソース作成
 - [x] App Factory Issue #15 によるPrivate Repo作成とGitHub上での確認
 - [x] 依存なしの8bit画面とネコ
-- [x] OpenPOI APIのGPS近傍検索、鳥取市公開座標の補完
+- [x] OpenPOI APIのGPS近傍検索、文学句碑2件と名所・人物ゆかりの補完地点4件
 - [x] 手動の見つけた・訪れた、許可時の近傍/すれ違い
 - [x] localStorageとPNG/印刷/JSONの出力
 - [ ] PRのmain統合と読戻し
