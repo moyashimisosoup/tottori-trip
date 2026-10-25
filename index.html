@@ -5,12 +5,12 @@
 <meta name="theme-color" content="#27334a"><meta name="description" content="鳥取の旅で訪れた・見つけた・すれ違った場所を、ひとつの旅帖に。">
 <title>とっとりトリップ</title>
 <link rel="stylesheet" href="vendor/leaflet.css?v=1.9.4-20261025">
-<link rel="stylesheet" href="styles.css?v=20261025-18">
+<link rel="stylesheet" href="styles.css?v=20261025-19">
 <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script defer src="literary-batch-01.js?v=20261025-03"></script>
 <script defer src="official-landmarks.js?v=20261025-02"></script>
 <script defer src="location-catalog.js?v=20261025-1"></script>
-<script defer src="app.js?v=20261025-24"></script>
+<script defer src="app.js?v=20261025-25"></script>
 </head>
 <body>
 <div class="shell">
@@ -36,10 +36,11 @@
         <form id="searchForm" role="search"><label class="sr-only" for="search">名前で探す</label><input id="search" type="search" enterkeyhint="search" autocomplete="off" placeholder="名前で探す" maxlength="60"><button type="submit" aria-label="検索">⌕</button></form>
       </div>
       <div class="filters" role="group" aria-label="ジャンル">
-        <button class="chip active" data-filter="all" aria-pressed="true">すべて</button><button class="chip" data-filter="sight">名所</button><button class="chip" data-filter="history">史跡</button><button class="chip" data-filter="literature">文学</button><button class="chip" data-filter="people">偉人</button><button class="chip" data-filter="food">飲食</button><button class="chip" data-filter="shop">買物</button><button class="chip" data-filter="temple">寺社</button>
+        <button class="chip active" data-filter="all" aria-pressed="true">すべて</button><button class="chip" data-filter="sight">名所</button><button class="chip" data-filter="history">史跡</button><button class="chip" data-filter="literature">文学</button><button class="chip" data-filter="people">偉人</button><button class="chip" data-filter="food">飲食</button><button class="chip" data-filter="cafe">カフェ</button><button class="chip" data-filter="shop">買物</button><button class="chip" data-filter="lodging">宿泊</button><button class="chip" data-filter="temple">寺社</button>
       </div>
       <div class="map-wrap">
   <div id="map" role="region" aria-label="鳥取の施設地図"></div>
+  <button id="searchHereBtn" class="map-search-here" type="button" hidden>⌕ この範囲で検索</button>
   <div class="map-fallback" id="mapFallback" hidden>
     <span>地図を読み込めません</span>
     <button id="mapFallbackRetryBtn" type="button">↻ もう一度</button>
@@ -54,11 +55,10 @@
   <div class="map-debug" id="mapDebug" hidden aria-live="polite"></div>
   <button id="mapSourceBtn" class="map-source-btn" type="button">↻ 地図切替</button>
 </div>
-      <button id="searchHereBtn" class="map-search-here" type="button" hidden>⌕ この範囲で再検索</button>
     </section>
     <section class="tabs" aria-label="表示切替"><button id="placesTab" class="tab active" aria-pressed="true">みつける <span id="placesCount">0</span></button><button id="journalTab" class="tab" aria-pressed="false">旅帖 <span id="journalCount">0</span></button></section>
     <section id="placesPane"><div id="message" class="message" role="status" aria-live="polite">地図の近くを探しています…</div><div id="places" class="cards"></div></section>
-    <section id="journalPane" hidden><div class="journal-toolbar"><label for="journalFilter">絞り込み</label><select id="journalFilter" aria-label="旅帖のジャンル"><option value="all">すべて</option><option value="sight">名所</option><option value="history">史跡</option><option value="literature">文学</option><option value="people">偉人</option><option value="food">飲食</option><option value="shop">買物</option><option value="temple">寺社</option><option value="other">施設</option></select><span id="journalShownCount">0件</span></div><div class="journal-stats" id="stats"></div><div id="journal" class="cards"></div><div class="export"><button id="imageBtn">▣ 画像にする</button><button id="printBtn">▤ PDFにする</button><button id="backupBtn">↓ バックアップ</button><label class="import-btn" for="restoreFile">↑ 復元</label><input id="restoreFile" type="file" accept="application/json,.json" hidden></div></section>
+    <section id="journalPane" hidden><div class="journal-toolbar"><label for="journalFilter">絞り込み</label><select id="journalFilter" aria-label="旅帖のジャンル"><option value="all">すべて</option><option value="sight">名所</option><option value="history">史跡</option><option value="literature">文学</option><option value="people">偉人</option><option value="food">飲食</option><option value="cafe">カフェ</option><option value="shop">買物</option><option value="lodging">宿泊</option><option value="temple">寺社</option><option value="other">施設</option></select><span id="journalShownCount">0件</span></div><div class="journal-stats" id="stats"></div><div id="journal" class="cards"></div><div class="export"><button id="imageBtn">▣ 画像にする</button><button id="printBtn">▤ PDFにする</button><button id="backupBtn">↓ バックアップ</button><label class="import-btn" for="restoreFile">↑ 復元</label><input id="restoreFile" type="file" accept="application/json,.json" hidden></div></section>
   </main>
   <footer><span>© <a href="https://openpoiapi.com/attribution.html" target="_blank" rel="noopener">OpenPOI API</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></span><span>旅の記録はこの端末に保存</span></footer>
 </div>
