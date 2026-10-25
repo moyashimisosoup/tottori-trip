@@ -110,7 +110,7 @@ function generalFacility(p){
 function touristSpot(p){
  if(generalFacility(p))return false;
  // Travel-friendly restaurants, local shops and stations belong in the default map.
- return ['sight','history','temple','literature','people','food','shop'].includes(effectiveType(p))||
+ return ['sight','history','temple','literature','people','food','shop','cafe','lodging'].includes(effectiveType(p))||
   /駅$|観光案内所|ビジターセンター/.test(String(p.name||''))
 }
 const TOTTORI_STATION_ID='search:railway:tottori';
@@ -164,7 +164,7 @@ const CULTURE_SPOTS=[
  {name:'谷口ジロー『父の暦』ゆかりの鳥取',lat:null,lng:null,address:'鳥取市内（作品の舞台）',area:'tottori',type:'literature',relatedTypes:['people'],note:'鳥取市が舞台の作品。固定の訪問地点を指定できないため参考情報。',url:'https://www.pref.tottori.lg.jp/291428.htm',source:'reference',verified:false}
 ].map((p,i)=>({...p,id:'culture:'+i,verified:p.verified!==false,category:p.type,licenses:[],attributions:[p.url]}));
 const $=id=>document.getElementById(id);
-const TYPES={sight:['✦','名所'],history:['▥','史跡'],temple:['社','寺社'],literature:['本','文学'],people:['★','偉人'],food:['食','飲食'],shop:['店','買物'],other:['・','施設']};
+const TYPES={sight:['✦','名所'],history:['▥','史跡'],temple:['社','寺社'],literature:['本','文学'],people:['★','偉人'],food:['食','飲食'],shop:['店','買物'],cafe:['☕','カフェ'],lodging:['宿','宿泊'],other:['・','施設']};
 const q=(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const initial=()=>{
  try{
@@ -219,6 +219,8 @@ function classify(p){
  const n=String(p.name||'');
  if(/たくみ割烹店/.test(n))return 'food';
  if(/たくみ工芸店/.test(n))return 'shop';
+ if(p.category==='cafe'||/カフェ|喫茶|珈琲|コーヒー|coffee|café|cafe|スターバックス|ドトール|タリーズ|すなば珈琲/i.test(n))return 'cafe';
+ if(['hotel','guest_house','hostel','ryokan','accommodation'].includes(p.category)||/ホテル|旅館|民宿|ゲストハウス|宿泊施設/.test(n))return 'lodging';
  if(p.type)return p.type==='adult'?'other':p.type;
  if(/郵便局|郵便ポスト|〒|ゆうちょ|学校|保育園|幼稚園|交番|駐在所|市役所|役場|公民館/.test(n))return 'other';
  if(isNightlifeName(n))return 'other';
@@ -237,6 +239,8 @@ function effectiveType(p){
  // Preserve the existing record ID and historic timestamps but correct its genre.
  if(/たくみ割烹店/.test(n))return 'food';
  if(/たくみ工芸店/.test(n))return 'shop';
+ if(p.category==='cafe'||/カフェ|喫茶|珈琲|コーヒー|coffee|café|cafe|スターバックス|ドトール|タリーズ|すなば珈琲/i.test(n))return 'cafe';
+ if(['hotel','guest_house','hostel','ryokan','accommodation'].includes(p.category)||/ホテル|旅館|民宿|ゲストハウス|宿泊施設/.test(n))return 'lodging';
  const original=p.type==='adult'?'other':(p.type||classify(p));
  if(original==='history'&&classify({...p,type:null})==='temple')return 'temple';
  return original||'other'
@@ -574,6 +578,13 @@ function iconKind(p){
  if(/図書館|文庫/.test(n))return 'book';
  // Food icon is a subtype: a cafe must never inherit the ramen pictogram.
  if(/たくみ割烹店/.test(n))return 'restaurant';
+ if(t==='shop'){
+  if(/工芸|民藝|民芸/.test(n))return 'shop-craft';
+  if(/土産|みやげ|お土産|ギフト/.test(n))return 'shop-souvenir';
+  return 'shop-misc'
+ }
+ if(t==='cafe')return 'cafe-ext';
+ if(t==='lodging')return 'building';
  if(c==='cafe'||/カフェ|喫茶|珈琲|コーヒー|coffee|café|cafe|スターバックス|ドトール|タリーズ|すなば珈琲/i.test(n))return 'cafe';
  if(c==='bakery'||/パン屋|パン店|パン工房|ベーカリー|ブーランジェ|bakery/i.test(n))return 'bakery';
  if(/和菓子|甘味|団子|だんご|餅屋|餅菓子|饅頭|まんじゅう|たい焼き/.test(n))return 'sweets';
@@ -588,8 +599,11 @@ function iconKind(p){
  if(t==='history')return 'ruins';
  return 'building'
 }
+const EXT_ICONS=new Set(['shop-misc','shop-craft','shop-souvenir','cafe-ext']);
 function pixelIcon(p){
  const kind=iconKind(p);
+ if(EXT_ICONS.has(kind))
+  return '<span class="pixel-art ext icon-'+kind+'" aria-hidden="true"></span>';
  if(POI_18_ICONS.has(kind))
   return '<span class="pixel-art v2 icon-'+kind+'" aria-hidden="true"></span>';
  return '<span class="pixel-art icon-'+(ATLAS_ICONS.has(kind)?kind:'building')+'" aria-hidden="true"></span>'

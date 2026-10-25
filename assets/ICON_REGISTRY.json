@@ -1,0 +1,441 @@
+{
+  "app": "APP-025",
+  "version": "2026-10-25-image-crops-v2",
+  "count": 65,
+  "items": [
+    {
+      "id": "IC-001",
+      "name": "scroll",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-002",
+      "name": "quill",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-003",
+      "name": "bust",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-004",
+      "name": "castle",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-005",
+      "name": "torii",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-006",
+      "name": "temple",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-007",
+      "name": "post",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-008",
+      "name": "book",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-009",
+      "name": "food",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-010",
+      "name": "tree",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-011",
+      "name": "night",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-012",
+      "name": "building",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-013",
+      "name": "torii",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-014",
+      "name": "post",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-015",
+      "name": "cafe",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-016",
+      "name": "restaurant",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-017",
+      "name": "bakery",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-018",
+      "name": "sweets",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-019",
+      "name": "seafood",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-020",
+      "name": "monument",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-021",
+      "name": "old_house",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-022",
+      "name": "museum",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-023",
+      "name": "ruins",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-024",
+      "name": "kofun",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-025",
+      "name": "dunes",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-026",
+      "name": "coast",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-027",
+      "name": "waterfall",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-028",
+      "name": "onsen",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-029",
+      "name": "station",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-030",
+      "name": "information",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-031",
+      "name": "shop-misc",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "new-sprite-integrating",
+      "position": 0,
+      "croppedFilename": "IC-031_shop_misc.png"
+    },
+    {
+      "id": "IC-032",
+      "name": "shop-craft",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "new-sprite-integrating",
+      "position": 1,
+      "croppedFilename": "IC-032_shop_craft.png"
+    },
+    {
+      "id": "IC-033",
+      "name": "shop-souvenir",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "new-sprite-integrating",
+      "position": 2,
+      "croppedFilename": "IC-033_shop_souvenir.png"
+    },
+    {
+      "id": "IC-034",
+      "name": "cafe-ext",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "new-sprite-integrating",
+      "position": 3,
+      "croppedFilename": "IC-034_cafe.png"
+    },
+    {
+      "id": "IC-035",
+      "name": "restaurant-ext",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "position": 4,
+      "croppedFilename": "IC-035_restaurant.png"
+    },
+    {
+      "id": "IC-036",
+      "name": "castle-ext",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "position": 5,
+      "croppedFilename": "IC-036_castle.png"
+    },
+    {
+      "id": "IC-037",
+      "name": "station-ext",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "position": 6,
+      "croppedFilename": "IC-037_station.png"
+    },
+    {
+      "id": "IC-038",
+      "name": "hotel-ext",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "position": 7,
+      "croppedFilename": "IC-038_hotel.png"
+    },
+    {
+      "id": "IC-039",
+      "name": "shrine",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-039_shrine.png"
+    },
+    {
+      "id": "IC-040",
+      "name": "temple",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-040_temple.png"
+    },
+    {
+      "id": "IC-041",
+      "name": "ruins",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-041_ruins.png"
+    },
+    {
+      "id": "IC-042",
+      "name": "stele",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-042_stele.png"
+    },
+    {
+      "id": "IC-043",
+      "name": "museum",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-043_museum.png"
+    },
+    {
+      "id": "IC-044",
+      "name": "art_museum",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-044_art_museum.png"
+    },
+    {
+      "id": "IC-045",
+      "name": "literary_house",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-045_literary_house.png"
+    },
+    {
+      "id": "IC-046",
+      "name": "literary_tablet",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-046_literary_tablet.png"
+    },
+    {
+      "id": "IC-047",
+      "name": "park",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-047_park.png"
+    },
+    {
+      "id": "IC-048",
+      "name": "scenic",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-048_scenic.png"
+    },
+    {
+      "id": "IC-049",
+      "name": "viewpoint",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-049_viewpoint.png"
+    },
+    {
+      "id": "IC-050",
+      "name": "bus_stop",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-050_bus_stop.png"
+    },
+    {
+      "id": "IC-051",
+      "name": "cityhall",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-051_cityhall.png"
+    },
+    {
+      "id": "IC-052",
+      "name": "post_office",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-052_post_office.png"
+    },
+    {
+      "id": "IC-053",
+      "name": "school",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-053_school.png"
+    },
+    {
+      "id": "IC-054",
+      "name": "library",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-054_library.png"
+    },
+    {
+      "id": "IC-055",
+      "name": "ryokan",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-055_ryokan.png"
+    },
+    {
+      "id": "IC-056",
+      "name": "tourism_building",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-056_tourism_building.png"
+    },
+    {
+      "id": "IC-057",
+      "name": "scenic_deck",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-057_scenic_deck.png"
+    },
+    {
+      "id": "IC-058",
+      "name": "sakura",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-058_sakura.png"
+    },
+    {
+      "id": "IC-059",
+      "name": "street_lamp",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-059_street_lamp.png"
+    },
+    {
+      "id": "IC-060",
+      "name": "shopping_street",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-060_shopping_street.png"
+    },
+    {
+      "id": "IC-061",
+      "name": "monument",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-061_monument.png"
+    },
+    {
+      "id": "IC-062",
+      "name": "office",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-062_office.png"
+    },
+    {
+      "id": "IC-063",
+      "name": "factory",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-063_factory.png"
+    },
+    {
+      "id": "IC-064",
+      "name": "hospital",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-064_hospital.png"
+    },
+    {
+      "id": "IC-065",
+      "name": "welfare",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "croppedFilename": "IC-065_welfare.png"
+    }
+  ],
+  "archive": "APP025_35_pixel_icons.zip (conversation artifact, not committed to GitHub)"
+}
