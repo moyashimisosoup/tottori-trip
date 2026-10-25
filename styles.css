@@ -21,7 +21,27 @@
 .pixel-art.icon-food{background-position:0 -62px}
 .pixel-art.icon-tree{background-position:-31px -62px}
 .pixel-art.icon-night{background-position:-62px -62px}
-.pixel-art.icon-building{background-position:-93px -62px}.place-card .content{flex:1;min-width:0}.place-card .name{font-size:14px;font-weight:900;overflow-wrap:anywhere}.place-card .minor{display:block;font-size:11px;color:var(--muted);margin-top:4px}.place-card .arrow{font-size:22px}.empty{text-align:center;color:var(--muted);border:2px dashed var(--stroke);padding:24px 8px}.journal-toolbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:9px;margin-top:14px}.journal-toolbar label{font-size:12px;font-weight:900}.journal-toolbar select{min-width:0;width:100%;min-height:38px;padding:5px 9px;background:var(--card);border:2px solid var(--ink);color:var(--ink);font-size:16px}.journal-toolbar span{font-size:12px;color:var(--muted);font-weight:900;white-space:nowrap}
+.pixel-art.icon-building{background-position:-93px -62px}
+/* Independent 18-subtype PNG sheet. Original twelve icons remain available. */
+.pixel-art.v2{background-image:url("assets/icons/tottori-icon-atlas-18.png?v=20261025-1");background-size:186px 93px}
+.pixel-art.v2.icon-torii{background-position:0px 0px}
+.pixel-art.v2.icon-post{background-position:-31px 0px}
+.pixel-art.v2.icon-cafe{background-position:-62px 0px}
+.pixel-art.v2.icon-restaurant{background-position:-93px 0px}
+.pixel-art.v2.icon-bakery{background-position:-124px 0px}
+.pixel-art.v2.icon-sweets{background-position:-155px 0px}
+.pixel-art.v2.icon-seafood{background-position:0px -31px}
+.pixel-art.v2.icon-monument{background-position:-31px -31px}
+.pixel-art.v2.icon-old_house{background-position:-62px -31px}
+.pixel-art.v2.icon-museum{background-position:-93px -31px}
+.pixel-art.v2.icon-ruins{background-position:-124px -31px}
+.pixel-art.v2.icon-kofun{background-position:-155px -31px}
+.pixel-art.v2.icon-dunes{background-position:0px -62px}
+.pixel-art.v2.icon-coast{background-position:-31px -62px}
+.pixel-art.v2.icon-waterfall{background-position:-62px -62px}
+.pixel-art.v2.icon-onsen{background-position:-93px -62px}
+.pixel-art.v2.icon-station{background-position:-124px -62px}
+.pixel-art.v2.icon-information{background-position:-155px -62px}.place-card .content{flex:1;min-width:0}.place-card .name{font-size:14px;font-weight:900;overflow-wrap:anywhere}.place-card .minor{display:block;font-size:11px;color:var(--muted);margin-top:4px}.place-card .arrow{font-size:22px}.empty{text-align:center;color:var(--muted);border:2px dashed var(--stroke);padding:24px 8px}.journal-toolbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:9px;margin-top:14px}.journal-toolbar label{font-size:12px;font-weight:900}.journal-toolbar select{min-width:0;width:100%;min-height:38px;padding:5px 9px;background:var(--card);border:2px solid var(--ink);color:var(--ink);font-size:16px}.journal-toolbar span{font-size:12px;color:var(--muted);font-weight:900;white-space:nowrap}
 .journal-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:16px}.stat{display:block;width:100%;min-width:0;min-height:58px;border:2px solid var(--ink);
  background:var(--card);color:var(--ink);text-align:center;padding:8px 4px;cursor:pointer;
  box-shadow:2px 2px 0 var(--ink)}

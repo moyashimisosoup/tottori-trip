@@ -183,26 +183,56 @@ function badgesFor(p,row){
 // preserving the original artwork while loading only one small image file.
 const ATLAS_ICONS=new Set(['scroll','quill','bust','castle','torii','temple',
  'post','book','food','tree','night','building']);
+const POI_18_ICONS=new Set([
+ 'torii','post','cafe','restaurant','bakery','sweets','seafood','monument',
+ 'old_house','museum','ruins','kofun','dunes','coast','waterfall','onsen',
+ 'station','information'
+]);
+/**
+ * Visual subtype is independent from the tabs' primary category/type.
+ * Prefer the source's structured category and curated iconKind when present;
+ * specific names only refine this without changing the category.
+ */
 function iconKind(p){
+ if(POI_18_ICONS.has(p.iconKind))return p.iconKind;
  const n=String(p.name||'');
- if(/郵便局|郵便ポスト|ゆうちょ/.test(n))return 'post';
- if(/神社|神宮|大社/.test(n))return 'torii';
- if(/寺院|寺$|寺（|寺\(/.test(n))return 'temple';
+ const c=String(p.category||'').toLowerCase();
+ const t=effectiveType(p);
+ // Most specific markers first: temple names inside post-office names are common.
+ if(/郵便局|郵便ポスト|ゆうちょ|簡易郵便局/.test(n))return 'post';
+ if(/観光案内所|ビジターセンター|インフォメーション|観光情報センター/.test(n))return 'information';
+ if(/鉄道駅|駅舎|駅$|停車場/.test(n))return 'station';
+ if(/神社|神宮|大社|鳥居/.test(n))return 'torii';
+ if(/寺院|寺$|寺（|寺\(|観音堂|岩屋堂|投入堂|仏閣/.test(n))return 'temple';
+ if(/古墳|墳丘/.test(n))return 'kofun';
+ if(/砂丘|風紋/.test(n))return 'dunes';
+ if(/滝|瀑布/.test(n))return 'waterfall';
+ if(/海岸|海水浴場|海辺|浦富海岸/.test(n))return 'coast';
+ if(/温泉|足湯|共同浴場/.test(n))return 'onsen';
+ if(/旧宅|生家|旧居|古民家|町家|古い民家/.test(n))return 'old_house';
  if(/城跡|城址|城郭/.test(n))return 'castle';
+ if(/遺跡|廃寺跡|史跡公園|台場跡|国庁跡/.test(n))return 'ruins';
+ if(/文学碑|歌碑|句碑|詩碑|石碑|記念碑|墓碑|顕彰碑/.test(n))return 'monument';
+ if(/博物館|美術館|資料館|記念館|歴史館|民藝美術館/.test(n))return 'museum';
  if(/図書館|文庫/.test(n))return 'book';
- if(/句碑|俳句|俳人/.test(n))return 'quill';
- if(/歌碑|文学の小径|詩碑|文学/.test(n))return 'scroll';
- if(/記念館|資料館|博物館|歴史館|美術館/.test(n))return p.type==='people'?'bust':'building';
- if(p.type==='people')return 'bust';
- if(p.type==='literature')return 'scroll';
- if(p.type==='food')return 'food';
- if(effectiveType(p)==='temple')return 'temple';
- if(p.type==='sight'&&/森|公園|山|砂丘|自然/.test(n))return 'tree';
- if(p.type==='history')return 'building';
+ // Food icon is a subtype: a cafe must never inherit the ramen pictogram.
+ if(c==='cafe'||/カフェ|喫茶|珈琲|コーヒー|coffee|café|cafe|スターバックス|ドトール|タリーズ|すなば珈琲/i.test(n))return 'cafe';
+ if(c==='bakery'||/パン屋|パン店|パン工房|ベーカリー|ブーランジェ|bakery/i.test(n))return 'bakery';
+ if(/和菓子|甘味|団子|だんご|餅屋|餅菓子|饅頭|まんじゅう|たい焼き/.test(n))return 'sweets';
+ if(/海鮮|魚介|海の幸|寿司|すし|鮮魚|魚市場|かに|蟹|かろいち/.test(n))return 'seafood';
+ if(/ラーメン|らーめん|らぁ麺|中華そば|つけ麺|牛骨らーめん/.test(n))return 'food';
+ if(['restaurant','fast_food','bar_izakaya'].includes(c)||t==='food')return 'restaurant';
+ if(/公園|庭園|森|並木|樹木|自然林/.test(n))return 'tree';
+ if(t==='temple')return 'temple';
+ if(t==='people')return 'bust';
+ if(t==='literature')return 'scroll';
+ if(t==='history')return 'ruins';
  return 'building'
 }
 function pixelIcon(p){
  const kind=iconKind(p);
+ if(POI_18_ICONS.has(kind))
+  return '<span class="pixel-art v2 icon-'+kind+'" aria-hidden="true"></span>';
  return '<span class="pixel-art icon-'+(ATLAS_ICONS.has(kind)?kind:'building')+'" aria-hidden="true"></span>'
 }
 
