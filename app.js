@@ -297,8 +297,16 @@ function allPlaces(){
 function normalizedSearch(value){
  return String(value||'').normalize('NFKC').toLocaleLowerCase().trim()
 }
+// Cafe has its own icon and category, but is also discoverable under Food.
+// Keep this rule shared across maps, the journal, statistics and exports.
+function belongsToCategory(p,category){
+ if(category==='all')return true;
+ const primary=effectiveType(p);
+ return primary===category||(category==='food'&&primary==='cafe')||
+  !!p.relatedTypes?.includes(category)
+}
 function matches(p){
- if(isNightlifeName(p.name)||state.filter!=='all'&&(effectiveType(p)!==state.filter&&!p.relatedTypes?.includes(state.filter)))return false;
+ if(isNightlifeName(p.name)||!belongsToCategory(p,state.filter))return false;
  const term=normalizedSearch(state.query);
  // Filter only default browsing; manual name search or genre choice still shows
  // all records, including offices and medical facilities if explicitly requested.
@@ -649,14 +657,12 @@ function latestJournalStatus(row){
 function filteredJournalRows(){
  const category=state.journalFilter,status=state.journalStatus;
  return journalRows().filter(row=>row&&row.place)
-  .filter(row=>category==='all'||effectiveType(row.place)===category||row.place.relatedTypes?.includes(category))
+  .filter(row=>belongsToCategory(row.place,category))
   .filter(row=>status==='all'||latestJournalStatus(row)===status)
 }
 function renderJournal(){
  const all=journalRows();
- const byCategory=all.filter(row=>state.journalFilter==='all'||
-   effectiveType(row.place)===state.journalFilter||
-   row.place.relatedTypes?.includes(state.journalFilter));
+ const byCategory=all.filter(row=>belongsToCategory(row.place,state.journalFilter));
  const rows=filteredJournalRows().sort((a,b)=>
    new Date(b.visitedAt||b.nearAt||b.seenAt||0)-new Date(a.visitedAt||a.nearAt||a.seenAt||0));
  $('journalCount').textContent=all.length;
@@ -673,7 +679,7 @@ function renderJournal(){
    textContent:all.length?'この条件の記録はまだありません。':'旅の記録はまだありません。'})]));
 }
 function setJournalFilter(category){
- state.journalFilter=['all','sight','history','temple','literature','people','food','shop','other'].includes(category)?category:'all';
+ state.journalFilter=(category==='all'||Object.hasOwn(TYPES,category))?category:'all';
  renderJournal()
 }
 function toggleJournalStatus(status){
@@ -1048,7 +1054,7 @@ function doSearch(ev){
 }
 function dataRows(category='all',status='all',raw=false){
  return (raw?Object.values(state.journal):journalRows())
- .filter(v=>v&&v.place&&(category==='all'||effectiveType(v.place)===category||v.place.relatedTypes?.includes(category)))
+ .filter(v=>v&&v.place&&belongsToCategory(v.place,category))
  .filter(v=>status==='all'||latestJournalStatus(v)===status)
  .sort((a,b)=>new Date(a.seenAt||a.nearAt||a.visitedAt||0)-new Date(b.seenAt||b.nearAt||b.visitedAt||0))
 }
