@@ -147,7 +147,7 @@ function effectiveType(p){
  // Preserve the existing record ID and historic timestamps but correct its genre.
  if(/たくみ割烹店/.test(n))return 'food';
  if(/たくみ工芸店/.test(n))return 'shop';
- const original=p.type==='adult'?'other':p.type;
+ const original=p.type==='adult'?'other':(p.type||classify(p));
  if(original==='history'&&classify({...p,type:null})==='temple')return 'temple';
  return original||'other'
 }
@@ -862,6 +862,15 @@ async function saveAddress(ev){
    const response=await fetch(GEO_SEARCH_URL+'?q='+encodeURIComponent(address),{signal:controller.signal});
    if(!response.ok)throw Error('Address search '+response.status);
    result=parseGsiCandidates(await response.json(),address)[0];
+   // GSI may index an address by town rather than its building number.
+   // Retry only the same locality; still label the result an approximate point.
+   if(!result){
+    const town=address.replace(/[0-9０-９]+(?:[-－][0-9０-９]+)?(?:番地?|号)?$/,'').trim();
+    if(town&&town!==address){
+     const fallback=await fetch(GEO_SEARCH_URL+'?q='+encodeURIComponent(town),{signal:controller.signal});
+     if(fallback.ok)result=parseGsiCandidates(await fallback.json(),town)[0]
+    }
+   }
   }finally{clearTimeout(timer)}
   if(!result||!state.selected||state.selected.id!==original.id){
    toast('住所の代表位置が見つかりません。表記を確認してください');return
