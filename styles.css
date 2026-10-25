@@ -174,3 +174,20 @@
 .literary-work-actions button{font-size:11px;min-height:30px;padding:3px 8px}
 .literary-work-actions a{font-size:11px}
 .literary-work-more{margin-top:9px;width:100%;min-height:34px;padding:5px 10px;font-size:12px}
+
+/* The count-bubble sits beside the real POI pin, not at an invented coordinate. */
+.literary-map-leaflet{background:transparent;border:0}
+.literary-map-pin{display:flex;align-items:center;justify-content:center;gap:1px;
+ width:46px;height:34px;border:2px solid var(--ink);border-radius:11px;
+ background:var(--gold);box-shadow:2px 2px 0 var(--ink);position:relative}
+.literary-map-pin:after{content:"";position:absolute;left:4px;bottom:-7px;
+ width:9px;height:9px;background:var(--gold);border-right:2px solid var(--ink);
+ border-bottom:2px solid var(--ink);transform:rotate(45deg)}
+.literary-map-pin .pixel-art{transform:scale(.65);transform-origin:center;flex-shrink:0}
+.literary-map-pin b{font-size:13px;font-weight:900;position:relative;z-index:1}
+.literary-work-map-note,.literary-map-dialog-note{font-size:11px;line-height:1.6;color:var(--muted)}
+.literary-map-list{display:grid;gap:7px;margin-top:12px;max-height:53vh;overflow-y:auto}
+.literary-map-work{border:1px solid var(--stroke);padding:10px;background:var(--paper)}
+.literary-map-work.selected{outline:2px solid var(--rose);outline-offset:-2px}
+.literary-map-work strong{display:block;font-size:13px;overflow-wrap:anywhere}
+.literary-map-work p{font-size:11px;color:var(--muted);margin:5px 0}
