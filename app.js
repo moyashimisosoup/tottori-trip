@@ -261,7 +261,17 @@ function pixelIcon(p){
 }
 
 function fillPlaceCard(place,row){const btn=document.createElement('button');btn.className='place-card';btn.type='button';btn.dataset.id=place.id;const [,label]=TYPES[place.type]||TYPES.other;btn.innerHTML=`<span class="symbol" aria-hidden="true">${pixelIcon(place)}</span><span class="content"><span class="name">${q(place.name)}</span>${badgesFor(place,row)}<span class="minor">${q(prettyDist(place))}</span></span><span class="arrow" aria-hidden="true">›</span>`;btn.addEventListener('click',()=>openDetail(place));return btn}
-function renderList(){state.places=allPlaces();let list=filtered();$('placesCount').textContent=list.length;$('places').replaceChildren(...list.map(p=>fillPlaceCard(p,state.journal[p.id])));if(!state.loading)$('message').textContent=list.length?`${list.length}か所`: 'この条件の場所はありません。エリアやジャンルを変えてください。';drawMarkers(list)}
+function renderList(){
+ state.places=allPlaces();
+ const list=filtered(),search=state.query.trim();
+ $('placesCount').textContent=list.length;
+ $('places').replaceChildren(...list.map(p=>fillPlaceCard(p,state.journal[p.id])));
+ if(!state.loading)$('message').textContent=search?
+  (list.length?`「${search}」の検索結果 ${list.length}件（地図外の登録地点も含む）`:
+   `「${search}」に一致する地点はありません。`):
+  (list.length?`${list.length}か所`:'この条件の場所はありません。エリアやジャンルを変えてください。');
+ drawMarkers(list)
+}
 const JOURNAL_STATES=[
  {id:'seen',label:'みつけた',date:'seenAt'},
  {id:'near',label:'すれ違い',date:'nearAt'},
@@ -607,7 +617,11 @@ function doSearch(ev){
    b.setAttribute('aria-pressed',String(on))
   }
  }
- renderList(); // Do not block curated results while the external API loads.
+ // The search bar is also available while the journal tab is selected.
+ if(state.tab!=='places')showTab('places');
+ else renderList();
+ $('search').blur(); // Dismiss the iPhone keyboard when search is submitted.
+ $('places').scrollIntoView({behavior:'smooth',block:'start'});
  fetchPlaces(state.query); // q applies only to live API results in the visible map area.
 }
 function dataRows(category='all',status='all'){
