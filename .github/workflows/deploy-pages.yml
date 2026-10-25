@@ -61,7 +61,11 @@ jobs:
           for css in stylesheet:
               css_path = root/urlsplit(css).path
               if css_path.is_file():
-                  parser.links.extend(re.findall(r'url\\([\'\"]?([^\'\")]+)',css_path.read_text(encoding='utf-8')))
+              for asset_match in re.finditer(r'url\(([^)]*)\)', css_path.read_text(encoding='utf-8')):
+                  value = asset_match.group(1).strip()
+                  if value.startswith(('"', "'")) and value.endswith(value[0]):
+                      value = value[1:-1]
+                  parser.links.append(value)
           missing = []
           for link in parser.links:
               if not link or link.startswith(('https:', 'http:', 'data:')):
