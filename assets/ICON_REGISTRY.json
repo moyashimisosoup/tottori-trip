@@ -1,0 +1,243 @@
+{
+  "app": "APP-025",
+  "version": "2026-10-25",
+  "count": 38,
+  "items": [
+    {
+      "id": "IC-001",
+      "name": "scroll",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-002",
+      "name": "quill",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-003",
+      "name": "bust",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-004",
+      "name": "castle",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-005",
+      "name": "torii",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-006",
+      "name": "temple",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-007",
+      "name": "post",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-008",
+      "name": "book",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-009",
+      "name": "food",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-010",
+      "name": "tree",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-011",
+      "name": "night",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-012",
+      "name": "building",
+      "atlas": "legacy-12",
+      "status": "existing"
+    },
+    {
+      "id": "IC-013",
+      "name": "torii",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-014",
+      "name": "post",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-015",
+      "name": "cafe",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-016",
+      "name": "restaurant",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-017",
+      "name": "bakery",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-018",
+      "name": "sweets",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-019",
+      "name": "seafood",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-020",
+      "name": "monument",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-021",
+      "name": "old_house",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-022",
+      "name": "museum",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-023",
+      "name": "ruins",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-024",
+      "name": "kofun",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-025",
+      "name": "dunes",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-026",
+      "name": "coast",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-027",
+      "name": "waterfall",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-028",
+      "name": "onsen",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-029",
+      "name": "station",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-030",
+      "name": "information",
+      "atlas": "poi-18",
+      "status": "existing"
+    },
+    {
+      "id": "IC-031",
+      "name": "shop-misc",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "new-sprite-integrating",
+      "position": 0
+    },
+    {
+      "id": "IC-032",
+      "name": "shop-craft",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "new-sprite-integrating",
+      "position": 1
+    },
+    {
+      "id": "IC-033",
+      "name": "shop-souvenir",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "new-sprite-integrating",
+      "position": 2
+    },
+    {
+      "id": "IC-034",
+      "name": "cafe-ext",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "new-sprite-integrating",
+      "position": 3
+    },
+    {
+      "id": "IC-035",
+      "name": "restaurant-ext",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "position": 4
+    },
+    {
+      "id": "IC-036",
+      "name": "castle-ext",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "position": 5
+    },
+    {
+      "id": "IC-037",
+      "name": "station-ext",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "position": 6
+    },
+    {
+      "id": "IC-038",
+      "name": "hotel-ext",
+      "atlas": "imagegen-20261025-sheet",
+      "status": "cropped-reference",
+      "position": 7
+    }
+  ]
+}
