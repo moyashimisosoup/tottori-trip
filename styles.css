@@ -156,3 +156,21 @@
 .pixel-art.ext.icon-shop-souvenir{background-position:-62px 0}
 .pixel-art.ext.icon-cafe-ext{background-position:-93px 0}
 
+
+/* Literary works are reference annotations, not independent GPS / journal spots. */
+.literary-works-panel{margin-top:12px;border:2px solid var(--ink);
+ background:var(--card);box-shadow:var(--shadow);padding:12px}
+.literary-works-panel[hidden],.literary-work-more[hidden]{display:none}
+.literary-works-head{display:flex;justify-content:space-between;gap:8px;align-items:baseline;
+ border-bottom:2px solid var(--ink);padding-bottom:8px}
+.literary-works-head b{font-size:14px}
+.literary-works-head span{font-size:11px;color:var(--muted);white-space:nowrap}
+.literary-works-hint{font-size:11px;color:var(--muted);line-height:1.6;margin:8px 0}
+.literary-work-cards{display:grid;gap:6px}
+.literary-work-card{border:1px solid var(--stroke);padding:9px;background:var(--paper)}
+.literary-work-card strong{font-size:13px;display:block;overflow-wrap:anywhere}
+.literary-work-author{font-size:11px;color:var(--muted);margin-top:2px}
+.literary-work-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:6px}
+.literary-work-actions button{font-size:11px;min-height:30px;padding:3px 8px}
+.literary-work-actions a{font-size:11px}
+.literary-work-more{margin-top:9px;width:100%;min-height:34px;padding:5px 10px;font-size:12px}

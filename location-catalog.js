@@ -1,7 +1,7 @@
-/* APP-025 curated address catalog: 106 registered static spots. Generated from current in-repo datasets; no invented GSI coordinates. Public place addresses only. */
+/* APP-025 curated address catalog; legacy IDs retained; literary sites are approximate if no GPS coordinate. */
 window.TOTTORI_LOCATION_CATALOG={
   "version": "2026-10-25-v1",
-  "count": 106,
+  "count": 109,
   "entries": [
     {
       "id": "guide:0",
@@ -1062,6 +1062,36 @@ window.TOTTORI_LOCATION_CATALOG={
       "verified": false,
       "approximate": false,
       "addressSource": null
+    },
+    {
+      "id": "lit03:site:01",
+      "name": "生田長江の碑",
+      "address": "日野郡日野町根雨・延暦寺境内",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://www.town.hino.tottori.jp/1285.htm"
+    },
+    {
+      "id": "lit03:site:02",
+      "name": "池田亀鑑文学碑（旧石見東小学校）",
+      "address": "日野郡日南町神戸上・旧石見東小学校",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://nichinan-cho.jp/100th-station/kamiiwami/"
+    },
+    {
+      "id": "lit03:site:03",
+      "name": "大山自然歴史館（文学碑めぐりの案内）",
+      "address": "西伯郡大山町大山43",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://daisen-museum.jp/schedule/event/69/"
     }
   ]
 };
