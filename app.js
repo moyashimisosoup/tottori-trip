@@ -584,7 +584,7 @@ function iconKind(p){
   return 'shop-misc'
  }
  if(t==='cafe')return 'cafe-ext';
- if(t==='lodging')return 'hotel-ext';
+ if(t==='lodging')return 'building';
  if(c==='cafe'||/カフェ|喫茶|珈琲|コーヒー|coffee|café|cafe|スターバックス|ドトール|タリーズ|すなば珈琲/i.test(n))return 'cafe';
  if(c==='bakery'||/パン屋|パン店|パン工房|ベーカリー|ブーランジェ|bakery/i.test(n))return 'bakery';
  if(/和菓子|甘味|団子|だんご|餅屋|餅菓子|饅頭|まんじゅう|たい焼き/.test(n))return 'sweets';
@@ -599,7 +599,7 @@ function iconKind(p){
  if(t==='history')return 'ruins';
  return 'building'
 }
-const EXT_ICONS=new Set(['shop-misc','shop-craft','shop-souvenir','cafe-ext','hotel-ext']);
+const EXT_ICONS=new Set(['shop-misc','shop-craft','shop-souvenir','cafe-ext']);
 function pixelIcon(p){
  const kind=iconKind(p);
  if(EXT_ICONS.has(kind))
