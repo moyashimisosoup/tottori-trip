@@ -18,7 +18,8 @@ let addressEnrichmentActive=false;
 function addressQueryText(address){
  // The descriptive tail identifies a group of monuments, not a postal address.
  const text=String(address||'').replace(/^鳥取県/,'').split(/[・（(]/)[0].trim();
- if(!text||/(?:県|市|町|村|市内|町内)$/.test(text))return '';
+ if(!text||/(?:市内|町内)$/.test(text)||
+  /^(?:鳥取県|鳥取市|米子市|倉吉市|境港市|岩美町|三朝町|若桜町|日南町|日野町|大山町|北栄町)$/.test(text))return '';
  return text
 }
 function withCatalog(p){
@@ -48,7 +49,7 @@ async function resolveRegisteredAddress(place,{retry=false}={}){
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),10000);
   try{
    let hit=null;
-   for(const term of [query,query.replace(/[0-9０-９]+(?:[-－][0-9０-９]+)?(?:番地?|号)?$/,'').trim()]){
+   for(const term of new Set([query,query.replace(/[0-9０-９]+(?:[-－][0-9０-９]+)?(?:番地?|号)?$/,'').trim()])){
     if(!term)continue;
     const response=await fetch(GEO_SEARCH_URL+'?q='+encodeURIComponent(term),{signal:controller.signal});
     if(!response.ok)throw new Error('GSI '+response.status);
@@ -61,6 +62,7 @@ async function resolveRegisteredAddress(place,{retry=false}={}){
    // Map data refresh is independent of the journal and preserves its IDs.
    state.places=allPlaces();
    renderList();
+   if(state.tracking)checkNear();
    return withCatalog(place)
   }catch(err){
    console.warn('Registered address geocode unavailable',query,err);
