@@ -83,3 +83,10 @@
 :root[data-tone="4"]{--ink:#3c3543;--paper:#fcf1e0;--card:#fff9f0;--rose:#dc806a;--lime:#94a36d;--gold:#f0be54;--muted:#756878;--stroke:#ddcdbb}
 :root[data-tone="5"]{--ink:#1c3047;--paper:#fff5da;--card:#fffefa;--rose:#f17659;--lime:#69a56b;--gold:#f4c139;--muted:#52616c;--stroke:#c4c5b9}
 @media print{#settings,.header-actions{display:none!important}}
+
+/* Detail dialog uses the same sprite icon as each mini map callout. */
+.detail-heading{display:flex;align-items:center;gap:11px;margin:12px 0 8px;min-width:0}
+.detail-heading h2{flex:1;min-width:0;margin:0;font-size:19px;line-height:1.4}
+.detail-icon{display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;
+ border:2px solid var(--ink);background:var(--paper);box-shadow:2px 2px 0 var(--ink)}
+.detail-icon .pixel-art{flex-shrink:0}
