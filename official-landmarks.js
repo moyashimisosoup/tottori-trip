@@ -1,5 +1,6 @@
-/* Official Tottori cultural/tourism selections. No artificial GPS pins.
-   referenceArea is a list-discovery radius around a CITY, not the facility. */
+/* Official Tottori cultural/tourism selections.
+   verified:false with coordinates means map-approximate only, excluded from GPS awards.
+   Unlocated referenceArea is listing-discovery ONLY. */
 window.TOTTORI_OFFICIAL_LANDMARKS=[
   {
     "id": "official:001",
@@ -12,22 +13,20 @@ window.TOTTORI_OFFICIAL_LANDMARKS=[
     "relatedTypes": [
       "people"
     ],
-    "lat": null,
-    "lng": null,
-    "verified": false,
+    "lat": 35.480914,
+    "lng": 134.268786,
+    "verified": true,
     "source": "official-tourism",
-    "referenceArea": {
-      "lat": 35.5011,
-      "lng": 134.2351,
-      "radius": 70000
-    },
     "mapQuery": "宇倍神社 鳥取市国府町宮下651",
     "category": "temple",
     "licenses": [],
     "attributions": [
-      "https://www.tottori-guide.jp/tourism/tour/view/12"
+      "https://www.tottori-guide.jp/tourism/tour/view/12",
+      "https://www.navitime.co.jp/poi?spot=01365-66794"
     ],
-    "official": true
+    "official": true,
+    "coordinateSource": "https://www.navitime.co.jp/poi?spot=01365-66794",
+    "coordinateNote": "NAVITIMEの神社地点（所在地651）と別の現地掲載座標がおおむね一致"
   },
   {
     "id": "official:002",
@@ -38,22 +37,20 @@ window.TOTTORI_OFFICIAL_LANDMARKS=[
     "note": "樗谿公園に隣接する国指定重要文化財の神社。",
     "url": "https://www.tottori-guide.jp/tourism/tour?keyword=%E7%A5%9E%E7%A4%BE",
     "relatedTypes": [],
-    "lat": null,
-    "lng": null,
+    "lat": 35.501146,
+    "lng": 134.246092,
     "verified": false,
     "source": "official-tourism",
-    "referenceArea": {
-      "lat": 35.5011,
-      "lng": 134.2351,
-      "radius": 70000
-    },
     "mapQuery": "鳥取東照宮（樗谿神社） 鳥取市上町",
     "category": "temple",
     "licenses": [],
     "attributions": [
-      "https://www.tottori-guide.jp/tourism/tour?keyword=%E7%A5%9E%E7%A4%BE"
+      "https://www.tottori-guide.jp/tourism/tour?keyword=%E7%A5%9E%E7%A4%BE",
+      "https://geoshape.ex.nii.ac.jp/nrct-poi/resource/32/320000038500.html"
     ],
-    "official": true
+    "official": true,
+    "coordinateSource": "https://geoshape.ex.nii.ac.jp/nrct-poi/resource/32/320000038500.html",
+    "coordinateNote": "歴史地名データの代表座標。入口位置・徒歩近接精度は未確認"
   },
   {
     "id": "official:003",
@@ -168,22 +165,20 @@ window.TOTTORI_OFFICIAL_LANDMARKS=[
     "note": "大山山岳信仰の拠点となった寺院。",
     "url": "https://www.tottori-guide.jp/theme/history/",
     "relatedTypes": [],
-    "lat": null,
-    "lng": null,
+    "lat": 35.390961,
+    "lng": 133.534714,
     "verified": false,
     "source": "official-tourism",
-    "referenceArea": {
-      "lat": 35.4281,
-      "lng": 133.3309,
-      "radius": 70000
-    },
     "mapQuery": "大山寺 西伯郡大山町大山",
     "category": "temple",
     "licenses": [],
     "attributions": [
-      "https://www.tottori-guide.jp/theme/history/"
+      "https://www.tottori-guide.jp/theme/history/",
+      "https://geoshape.ex.nii.ac.jp/nrct-poi/resource/32/320000187900.html"
     ],
-    "official": true
+    "official": true,
+    "coordinateSource": "https://geoshape.ex.nii.ac.jp/nrct-poi/resource/32/320000187900.html",
+    "coordinateNote": "歴史地名データの代表座標。入口・本堂の精密位置は未確認"
   },
   {
     "id": "official:008",
@@ -594,22 +589,20 @@ window.TOTTORI_OFFICIAL_LANDMARKS=[
     "note": "米子城の石垣が残る国指定史跡。",
     "url": "https://www.pref.tottori.lg.jp/82815.htm",
     "relatedTypes": [],
-    "lat": null,
-    "lng": null,
-    "verified": false,
+    "lat": 35.424992,
+    "lng": 133.324416,
+    "verified": true,
     "source": "official-tourism",
-    "referenceArea": {
-      "lat": 35.4281,
-      "lng": 133.3309,
-      "radius": 70000
-    },
     "mapQuery": "米子城跡 米子市久米町",
     "category": "history",
     "licenses": [],
     "attributions": [
-      "https://www.pref.tottori.lg.jp/82815.htm"
+      "https://www.pref.tottori.lg.jp/82815.htm",
+      "https://www.navitime.co.jp/poi?spot=02301-12300066"
     ],
-    "official": true
+    "official": true,
+    "coordinateSource": "https://www.navitime.co.jp/poi?spot=02301-12300066",
+    "coordinateNote": "NAVITIME米子城跡地点。NII代表座標とも概ね一致"
   },
   {
     "id": "official:024",
