@@ -858,6 +858,13 @@ async function saveAddress(ev){
  if(!original)return;
  const address=$('detailAddress').value.trim();
  if(!address){toast('住所を入力してください');return}
+ // Merely opening the existing address on the map must NEVER downgrade an
+ // accurate registered facility coordinate to an approximate GSI locality.
+ if(address===original.address&&Number.isFinite(original.lat)&&Number.isFinite(original.lng)){
+  $('detail').close();
+  viewOnMap();
+  return
+ }
  const button=$('saveAddressBtn');
  button.disabled=true;
  button.textContent='住所を検索中…';
