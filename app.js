@@ -2,6 +2,8 @@
 'use strict';
 const API='https://api.openpoiapi.com/v1/search';
 const KEY='tottori-trip-v1';
+const TOTTORI_STATION_ID='search:railway:tottori';
+const TOTTORI_STATION_POINT={lat:35.49422,lng:134.226085};
 const AREAS={
  tottori:{name:'鳥取市',lat:35.5011,lng:134.2351},
  kurayoshi:{name:'倉吉',lat:35.4307,lng:133.8255},
@@ -68,6 +70,35 @@ const initial=()=>{
 const state={area:'tottori',center:AREAS.tottori,filter:'all',query:'',places:[],results:[],journal:initial(),tab:'places',journalFilter:'all',journalStatus:'all',selected:null,map:null,markers:null,gps:null,watch:null,tracking:false,lastFetch:0,lastLoc:null,toastTimer:0,loading:false,searchMapActive:false,searchOriginalView:null,geocodeResult:null};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state.journal))}catch{toast('保存できません。空き容量をご確認ください')}}
 function idOf(p){return p.id||'poi:'+([p.source||'',p.name||'',Number(p.lat).toFixed(5),Number(p.lng).toFixed(5)].join('|'))}
+// Group the exact station name near its representative point. Similar names
+// such as 鳥取駅南口観光バス乗り場 must remain separate places.
+function sameTottoriStation(p){
+ return p&&normalizedSearch(p.name)==='鳥取駅'&&
+  Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&
+  meters(p,TOTTORI_STATION_POINT)<=300
+}
+function placeKey(p){return sameTottoriStation(p)?TOTTORI_STATION_ID:idOf(p)}
+// Keep old localStorage IDs/records intact; combine them only for display,
+// counts and proximity checks. JSON backup exports all original entries.
+function journalRows(){
+ const rows=[];let station=null;
+ for(const row of Object.values(state.journal)){
+  if(!row?.place)continue;
+  if(!sameTottoriStation(row.place)){rows.push(row);continue}
+  if(!station){station={...row};rows.push(station);continue}
+  for(const field of ['seenAt','nearAt','visitedAt']){
+   station[field]=[station[field],row[field]].filter(Boolean).sort()[0]||null
+  }
+  if(row.place.verified===true&&station.place.verified!==true)
+   station.place=row.place
+ }
+ return rows
+}
+function journalRecordFor(p){
+ return sameTottoriStation(p)?
+  journalRows().find(row=>sameTottoriStation(row.place)):
+  state.journal[idOf(p)]
+}
 function normalize(raw){if(!raw||!raw.name)return null;const lat=raw.lat===''||raw.lat==null?null:Number(raw.lat);const lng=raw.lng===''||raw.lng==null?null:Number(raw.lng);if(lat!==null&&(!Number.isFinite(lat)||lat < -90||lat>90))return null;if(lng!==null&&(!Number.isFinite(lng)||lng< -180||lng>180))return null;
  const p={name:String(raw.name).slice(0,130),lat,lng,address:String(raw.address||'').slice(0,180),category:String(raw.category||'unknown'),source:String(raw.source||'openpoi'),attributions:Array.isArray(raw.attributions)?raw.attributions.slice(0,15):[],licenses:Array.isArray(raw.licenses)?raw.licenses.slice(0,15):[],verified:true};p.id=idOf(p);p.type=classify(p);return p}
 function isNightlifeName(name){
@@ -98,7 +129,15 @@ function prettyDist(p){let n=meters(state.gps||state.center,p);if(!Number.isFini
 function where(p){return p.address||(p.source==='guide'?(AREAS[p.area]?.name||'鳥取県'):'')}
 function toast(s){const el=$('toast');el.textContent=s;el.hidden=false;clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>el.hidden=true,3000)}
 function status(s,ok=false){$('gpsStatus').textContent=s;$('gpsDot').classList.toggle('on',ok);$('locateBtn').setAttribute('aria-pressed',String(ok))}
-function eventFor(p,kind){const id=idOf(p);let row=state.journal[id];if(!row){row={id,place:{...p},seenAt:null,nearAt:null,visitedAt:null};state.journal[id]=row}if(!row[kind+'At'])row[kind+'At']=new Date().toISOString();row.place={...p};save();$('journalCount').textContent=Object.keys(state.journal).length;return row}
+function eventFor(p,kind){
+ // Avoid creating another station ID if a journal alias was recorded earlier.
+ const id=sameTottoriStation(p)?(journalRecordFor(p)?.id||idOf(p)):idOf(p);
+ let row=state.journal[id];
+ if(!row){row={id,place:{...p,id},seenAt:null,nearAt:null,visitedAt:null};state.journal[id]=row}
+ if(!row[kind+'At'])row[kind+'At']=new Date().toISOString();
+ row.place={...p,id,verified:p.verified===true||row.place?.verified===true};
+ save();$('journalCount').textContent=journalRows().length;return row
+}
 function rank(row){return row?.visitedAt?'訪れた':row?.nearAt?'すれ違った':row?.seenAt?'見つけた':''}
 function showTab(tab){state.tab=tab;const on=tab==='places';$('placesPane').hidden=!on;$('journalPane').hidden=on;$('placesTab').classList.toggle('active',on);$('journalTab').classList.toggle('active',!on);$('placesTab').setAttribute('aria-pressed',String(on));$('journalTab').setAttribute('aria-pressed',String(!on));if(!on)renderJournal();else renderList();refreshMapSize(90)}
 const LITERARY_BATCH_01=Array.isArray(window.TOTTORI_LITERARY_BATCH_01)?window.TOTTORI_LITERARY_BATCH_01:[];
@@ -127,7 +166,9 @@ function allPlaces(){
   if(isNightlifeName(item.name))continue;
   const nextType=effectiveType(item);
   const p=nextType===item.type?item:{...item,type:nextType};
-  items.set(p.id,p)
+  const key=placeKey(p),prior=items.get(key);
+  if(!prior||(!state.journal[prior.id]&&!!state.journal[p.id])||
+   (p.verified===true&&prior.verified!==true))items.set(key,p)
  }
  return [...items.values()]
 }
@@ -429,9 +470,9 @@ function fillPlaceCard(place,row){const btn=document.createElement('button');btn
 function renderList(){
  state.places=allPlaces();
  const list=filtered(),search=state.query.trim(),candidate=search?state.geocodeResult:null;
- const geo=candidate&&!list.some(p=>p.id===geoPlace(candidate).id)?candidate:null;
+ const geo=candidate&&!list.some(p=>placeKey(p)===placeKey(geoPlace(candidate)))?candidate:null;
  $('placesCount').textContent=list.length+(geo?1:0);
- $('places').replaceChildren(...(geo?[geocodeResultCard(geo)]:[]),...list.map(p=>fillPlaceCard(p,state.journal[p.id])));
+ $('places').replaceChildren(...(geo?[geocodeResultCard(geo)]:[]),...list.map(p=>fillPlaceCard(p,journalRecordFor(p))));
  if(!state.loading)$('message').textContent=search?
   (list.length||geo?`「${search}」の検索結果 ${list.length+(geo?1:0)}件（地図外の登録地点・地図検索を含む）`:
    `「${search}」に一致する地点はありません。`):
@@ -452,12 +493,12 @@ function latestJournalStatus(row){
 }
 function filteredJournalRows(){
  const category=state.journalFilter,status=state.journalStatus;
- return Object.values(state.journal).filter(row=>row&&row.place)
+ return journalRows().filter(row=>row&&row.place)
   .filter(row=>category==='all'||effectiveType(row.place)===category||row.place.relatedTypes?.includes(category))
   .filter(row=>status==='all'||latestJournalStatus(row)===status)
 }
 function renderJournal(){
- const all=Object.values(state.journal).filter(row=>row&&row.place);
+ const all=journalRows();
  const byCategory=all.filter(row=>state.journalFilter==='all'||
    effectiveType(row.place)===state.journalFilter||
    row.place.relatedTypes?.includes(state.journalFilter));
@@ -740,12 +781,12 @@ async function fetchPlaces(extra=state.query,focusAfterSearch=false){
   updateSearchHereButton();
   if(extra)qs.set('q',extra);const controller=new AbortController();const tm=setTimeout(()=>controller.abort(),11000);let response;try{response=await fetch(`${API}?${qs}`,{signal:controller.signal})}finally{clearTimeout(tm)}if(!response.ok)throw new Error('HTTP '+response.status);const json=await response.json();if(seq!==reqSeq)return;state.results=(Array.isArray(json.results)?json.results:[]).map(normalize).filter(Boolean).filter(p=>!isNightlifeName(p.name));state.lastFetch=Date.now();}catch(err){if(seq!==reqSeq)return;state.results=[];$('message').textContent='施設データが読み込めません。参考スポットのみ表示します。';console.warn('OpenPOI search unavailable',err)}finally{if(seq===reqSeq){state.loading=false;renderList();if(focusAfterSearch&&extra===state.query)focusSearchResults({silent:true});updateSearchHereButton();checkNear()}}}
 function openDetail(p){
- const saved=state.journal[p.id]?.place;
+ const saved=journalRecordFor(p)?.place;
  // Do not undo a previously confirmed location when the original listing has
  // an older, unverified copy of this place.
  if(saved?.verified===true&&p.verified!==true&&Number.isFinite(saved.lat)&&Number.isFinite(saved.lng))
   p=saved;
- state.selected=p;const row=eventFor(p,'seen');
+ state.selected=p;eventFor(p,'seen');const row=journalRecordFor(p);
  $('detailType').textContent=(TYPES[effectiveType(p)]||TYPES.other)[1];
  $('detailName').textContent=p.name;
  $('detailMeta').textContent=[where(p),prettyDist(p)].filter(Boolean).join(' · ');
@@ -793,11 +834,11 @@ function checkNear(){
  const candidates=new Map();
  for(const p of [...state.results,...currentGuides(),
   ...Object.values(state.journal).map(row=>row?.place).filter(Boolean)]){
-  if(canAutoDetect(p))candidates.set(p.id,p)
+  if(canAutoDetect(p))candidates.set(placeKey(p),p)
  }
  let found=0;
  for(const p of candidates.values()){
-  if(meters(state.gps,p)<=160&&!state.journal[p.id]?.nearAt){
+  if(meters(state.gps,p)<=160&&!journalRecordFor(p)?.nearAt){
    eventFor(p,'near');found++
   }
  }
@@ -853,20 +894,20 @@ function doSearch(ev){
   $('places').scrollIntoView({behavior:'smooth',block:'start'})
  }
 }
-function dataRows(category='all',status='all'){
- return Object.values(state.journal)
+function dataRows(category='all',status='all',raw=false){
+ return (raw?Object.values(state.journal):journalRows())
  .filter(v=>v&&v.place&&(category==='all'||effectiveType(v.place)===category||v.place.relatedTypes?.includes(category)))
  .filter(v=>status==='all'||latestJournalStatus(v)===status)
  .sort((a,b)=>new Date(a.seenAt||a.nearAt||a.visitedAt||0)-new Date(b.seenAt||b.nearAt||b.visitedAt||0))
 }
 function stamp(d){if(!d)return '';const v=new Date(d);return Number.isNaN(v.getTime())?'':new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(v)}
 function download(blob,filename){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000)}
-function backup(){const payload={app:'とっとりトリップ',version:1,exportedAt:new Date().toISOString(),entries:dataRows()};download(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),'tottori-trip-backup.json');toast('バックアップを作成しました')}
+function backup(){const payload={app:'とっとりトリップ',version:1,exportedAt:new Date().toISOString(),entries:dataRows('all','all',true)};download(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),'tottori-trip-backup.json');toast('バックアップを作成しました')}
 async function restore(ev){const file=ev.target.files?.[0];ev.target.value='';if(!file)return;if(file.size>3000000){toast('ファイルが大きすぎます');return}try{const data=JSON.parse(await file.text());if(data.app!=='とっとりトリップ'||!Array.isArray(data.entries)||data.entries.length>3000)throw Error('invalid file');let count=0;for(const row of data.entries){if(!row||typeof row.id!=='string'||row.id.length>220||typeof row.place?.name!=='string'||row.place.name.length>150)continue;const p=row.place;const safe={id:row.id,name:p.name.slice(0,130),type:Object.hasOwn(TYPES,p.type)?p.type:'other',lat:Number.isFinite(Number(p.lat))&&p.lat!==null?Number(p.lat):null,lng:Number.isFinite(Number(p.lng))&&p.lng!==null?Number(p.lng):null,address:String(p.address||'').slice(0,180),note:String(p.note||'').slice(0,400),source:String(p.source||''),verified:p.verified===true,licenses:Array.isArray(p.licenses)?p.licenses.slice(0,15):[],attributions:Array.isArray(p.attributions)?p.attributions.slice(0,15):[]};state.journal[row.id]={id:row.id,place:safe,seenAt:safeDate(row.seenAt),nearAt:safeDate(row.nearAt),visitedAt:safeDate(row.visitedAt)};count++}save();renderJournal();toast(`${count}件を復元しました`)}catch{toast('復元できないJSONファイルです')}}
 function safeDate(s){if(typeof s!=='string'||s.length>40)return null;return Number.isNaN(Date.parse(s))?null:s}
 function drawWrapped(ctx,text,x,y,maxWidth,lineHeight,maxLines){const chars=Array.from(text);let line='',lines=0;for(const c of chars){if(ctx.measureText(line+c).width>maxWidth&&line){ctx.fillText(line,x,y+lines*lineHeight);lines++;line=c;if(lines>=maxLines)return lines}else line+=c}if(line&&lines<maxLines){ctx.fillText(line,x,y+lines*lineHeight);lines++}return lines}
 function makeCanvas(){const visible=dataRows(state.journalFilter,state.journalStatus),total=visible.length,rows=visible.slice(0,60);const w=900,top=240,rowH=88,h=Math.max(480,top+Math.max(1,rows.length)*rowH+100);const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#f6f2e6';x.fillRect(0,0,w,h);x.fillStyle='#253348';x.font='bold 56px sans-serif';x.fillText('とっとりトリップ',60,100);x.font='24px sans-serif';x.fillText(new Date().toLocaleDateString('ja-JP'),62,150);x.fillText(`みつけた ${rows.filter(r=>r.seenAt).length}   すれ違い ${rows.filter(r=>r.nearAt).length}   訪れた ${rows.filter(r=>r.visitedAt).length}`,60,194);rows.forEach((r,i)=>{const y=top+i*rowH;x.fillStyle=i%2?'#f0ebdd':'#fffdf5';x.fillRect(45,y-12,w-90,rowH-4);x.fillStyle='#253348';x.font='bold 25px sans-serif';drawWrapped(x,r.place.name,60,y+23,650,26,1);x.font='20px sans-serif';x.fillStyle='#6b727b';x.fillText(`${rank(r)}  ${stamp(r.visitedAt||r.nearAt||r.seenAt)}`,62,y+56)});x.fillStyle='#253348';x.font='18px sans-serif';x.fillText(`TOTTORI TRIP  ·  OpenPOI API  ·  ${rows.length}/${total}件`,50,h-32);return c}
 async function imageExport(){try{const c=makeCanvas();const blob=await new Promise(resolve=>c.toBlob(resolve,'image/png'));if(!blob)throw Error('png');const file=new File([blob],'tottori-trip.png',{type:'image/png'});if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:'とっとりトリップ'});return}catch(err){if(err.name==='AbortError')return}}download(blob,'tottori-trip.png');toast('旅帖の画像を作成しました')}catch{toast('画像を作成できませんでした')}}
 function openGoogle(){const p=state.selected;if(p)window.open(googleMapsLink(p),'_blank','noopener')}
-function init(){mapInit();$('stats').addEventListener('click',e=>{const target=e.target.closest('[data-journal-status]');if(target)toggleJournalStatus(target.dataset.journalStatus)});$('area').addEventListener('change',resetArea);$('locateBtn').addEventListener('click',locate);$('trackBtn').addEventListener('click',toggleTracking);$('searchForm').addEventListener('submit',doSearch);$('search').addEventListener('input',onSearchInput);$('searchHereBtn').addEventListener('click',searchVisibleMap);document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>chooseFilter(b.dataset.filter)));$('placesTab').addEventListener('click',()=>showTab('places'));$('journalTab').addEventListener('click',()=>showTab('journal'));$('journalFilter').addEventListener('change',e=>setJournalFilter(e.target.value));$('visitBtn').addEventListener('click',()=>recordClick('visited'));$('nearBtn').addEventListener('click',()=>recordClick('near'));$('confirmPositionBtn').addEventListener('click',confirmPosition);$('googleMapsBtn').addEventListener('click',openGoogle);$('viewOnMapBtn').addEventListener('click',viewOnMap);$('mapSourceBtn').addEventListener('click',changeMapProvider);$('mapRetryBtn').addEventListener('click',reloadMapTiles);$('mapFallbackRetryBtn').addEventListener('click',reloadMapTiles);$('infoBtn').addEventListener('click',()=>$('info').showModal());$('imageBtn').addEventListener('click',imageExport);$('printBtn').addEventListener('click',()=>{renderJournal();window.print()});$('backupBtn').addEventListener('click',backup);$('restoreFile').addEventListener('change',restore);$('journalCount').textContent=Object.keys(state.journal).length;renderList();fetchPlaces();}
+function init(){mapInit();$('stats').addEventListener('click',e=>{const target=e.target.closest('[data-journal-status]');if(target)toggleJournalStatus(target.dataset.journalStatus)});$('area').addEventListener('change',resetArea);$('locateBtn').addEventListener('click',locate);$('trackBtn').addEventListener('click',toggleTracking);$('searchForm').addEventListener('submit',doSearch);$('search').addEventListener('input',onSearchInput);$('searchHereBtn').addEventListener('click',searchVisibleMap);document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>chooseFilter(b.dataset.filter)));$('placesTab').addEventListener('click',()=>showTab('places'));$('journalTab').addEventListener('click',()=>showTab('journal'));$('journalFilter').addEventListener('change',e=>setJournalFilter(e.target.value));$('visitBtn').addEventListener('click',()=>recordClick('visited'));$('nearBtn').addEventListener('click',()=>recordClick('near'));$('confirmPositionBtn').addEventListener('click',confirmPosition);$('googleMapsBtn').addEventListener('click',openGoogle);$('viewOnMapBtn').addEventListener('click',viewOnMap);$('mapSourceBtn').addEventListener('click',changeMapProvider);$('mapRetryBtn').addEventListener('click',reloadMapTiles);$('mapFallbackRetryBtn').addEventListener('click',reloadMapTiles);$('infoBtn').addEventListener('click',()=>$('info').showModal());$('imageBtn').addEventListener('click',imageExport);$('printBtn').addEventListener('click',()=>{renderJournal();window.print()});$('backupBtn').addEventListener('click',backup);$('restoreFile').addEventListener('change',restore);$('journalCount').textContent=journalRows().length;renderList();fetchPlaces();}
 if(document.readyState==='complete')init();else window.addEventListener('load',init,{once:true});
