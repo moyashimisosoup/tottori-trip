@@ -90,3 +90,36 @@
 .detail-icon{display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;
  border:2px solid var(--ink);background:var(--paper);box-shadow:2px 2px 0 var(--ink)}
 .detail-icon .pixel-art{flex-shrink:0}
+
+/* Visitor browsing: eight compact category tabs including shopping. */
+.filters{grid-template-columns:repeat(8,minmax(0,1fr));gap:2px}
+.chip{font-size:clamp(8px,2.35vw,11px);padding-inline:0}
+.chip[data-filter="shop"]{--spot-color:#cf9d76}
+.theme-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.theme-choice{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;
+ min-height:72px;padding:8px 4px;background:var(--card);font-size:12px;box-shadow:none}
+.theme-choice.active{outline:3px solid var(--rose);outline-offset:1px;background:var(--paper)}
+.theme-choice[aria-pressed="true"]::after{content:"✓ 選択中";font-size:10px}
+.theme-swatches{display:flex;width:72px;max-width:100%;height:19px;border:1px solid var(--ink)}
+.theme-swatches i{flex:1;min-width:0}
+[data-tone-choice="1"] .theme-swatches i:nth-child(1){background:#f1eee9}
+[data-tone-choice="1"] .theme-swatches i:nth-child(2){background:#a98f8b}
+[data-tone-choice="1"] .theme-swatches i:nth-child(3){background:#464d55}
+[data-tone-choice="2"] .theme-swatches i:nth-child(1){background:#f1f2ec}
+[data-tone-choice="2"] .theme-swatches i:nth-child(2){background:#8e9c8c}
+[data-tone-choice="2"] .theme-swatches i:nth-child(3){background:#35465b}
+[data-tone-choice="3"] .theme-swatches i:nth-child(1){background:#f6f2e6}
+[data-tone-choice="3"] .theme-swatches i:nth-child(2){background:#e7bc5a}
+[data-tone-choice="3"] .theme-swatches i:nth-child(3){background:#253348}
+[data-tone-choice="4"] .theme-swatches i:nth-child(1){background:#fcf1e0}
+[data-tone-choice="4"] .theme-swatches i:nth-child(2){background:#dc806a}
+[data-tone-choice="4"] .theme-swatches i:nth-child(3){background:#3c3543}
+[data-tone-choice="5"] .theme-swatches i:nth-child(1){background:#fff5da}
+[data-tone-choice="5"] .theme-swatches i:nth-child(2){background:#69a56b}
+[data-tone-choice="5"] .theme-swatches i:nth-child(3){background:#1c3047}
+.detail-address-form{margin:16px 0 8px;border-top:1px solid var(--stroke);padding-top:12px}
+.detail-address-form label{display:block;font-size:12px;font-weight:900;margin-bottom:7px}
+.detail-address-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:7px}
+.detail-address-controls input{font-size:16px}
+.detail-address-controls button{background:var(--paper);font-size:12px}
+@media(min-width:420px){.theme-options{grid-template-columns:repeat(5,minmax(0,1fr))}}
