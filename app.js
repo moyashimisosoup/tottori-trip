@@ -119,7 +119,9 @@ function currentGuides(){
 function allPlaces(){
  const items=new Map();
  const savedSearch=Object.values(state.journal)
-  .filter(row=>row?.place&&['gsi-search','railway-search'].includes(row.place.source))
+  .filter(row=>row?.place&&(
+   ['gsi-search','railway-search'].includes(row.place.source)||
+   (row.place.verified===true&&Number.isFinite(row.place.lat)&&Number.isFinite(row.place.lng))))
   .map(row=>row.place);
  for(const item of [...currentGuides(),...state.results,...savedSearch]){
   if(isNightlifeName(item.name))continue;
@@ -738,6 +740,11 @@ async function fetchPlaces(extra=state.query,focusAfterSearch=false){
   updateSearchHereButton();
   if(extra)qs.set('q',extra);const controller=new AbortController();const tm=setTimeout(()=>controller.abort(),11000);let response;try{response=await fetch(`${API}?${qs}`,{signal:controller.signal})}finally{clearTimeout(tm)}if(!response.ok)throw new Error('HTTP '+response.status);const json=await response.json();if(seq!==reqSeq)return;state.results=(Array.isArray(json.results)?json.results:[]).map(normalize).filter(Boolean).filter(p=>!isNightlifeName(p.name));state.lastFetch=Date.now();}catch(err){if(seq!==reqSeq)return;state.results=[];$('message').textContent='施設データが読み込めません。参考スポットのみ表示します。';console.warn('OpenPOI search unavailable',err)}finally{if(seq===reqSeq){state.loading=false;renderList();if(focusAfterSearch&&extra===state.query)focusSearchResults({silent:true});updateSearchHereButton();checkNear()}}}
 function openDetail(p){
+ const saved=state.journal[p.id]?.place;
+ // Do not undo a previously confirmed location when the original listing has
+ // an older, unverified copy of this place.
+ if(saved?.verified===true&&p.verified!==true&&Number.isFinite(saved.lat)&&Number.isFinite(saved.lng))
+  p=saved;
  state.selected=p;const row=eventFor(p,'seen');
  $('detailType').textContent=(TYPES[effectiveType(p)]||TYPES.other)[1];
  $('detailName').textContent=p.name;
