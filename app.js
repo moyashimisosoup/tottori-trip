@@ -1145,6 +1145,14 @@ function checkNear(){
   if(state.tab==='journal')renderJournal()}
 }
 function toggleTracking(){if(state.tracking){navigator.geolocation.clearWatch(state.watch);state.watch=null;state.tracking=false;$('trackBtn').textContent='◇ すれ違い OFF';$('trackBtn').setAttribute('aria-pressed','false');return}if(!navigator.geolocation){toast('位置情報が使えません');return}state.tracking=true;$('trackBtn').textContent='◆ すれ違い ON';$('trackBtn').setAttribute('aria-pressed','true');state.watch=navigator.geolocation.watchPosition(p=>onLocation(p,false),err=>{locationFailure(err);toggleTracking()},{enableHighAccuracy:true,maximumAge:10000,timeout:20000})}
+function focusLiteraryRegion(){
+ if(!state.map||state.query.trim()||state.filter!=='literature')return;
+ const groups=literaryMapGroups();
+ if(!groups.length)return;
+ const coords=groups.map(g=>[g.lat,g.lng]);
+ if(coords.length===1)state.map.setView(coords[0],13,{animate:false});
+ else state.map.fitBounds(coords,{padding:[45,45],maxZoom:13,animate:false})
+}
 function chooseFilter(f){
  if(f!=='all'&&!TYPES[f])return;
  state.filter=f;
@@ -1154,9 +1162,10 @@ function chooseFilter(f){
   b.setAttribute('aria-pressed',String(on))
  }
  if(!state.results.length||!state.lastFetch)fetchPlaces();
- else renderList()
+ else renderList();
+ if(f==='literature')focusLiteraryRegion()
 }
-function resetArea(){const a=AREAS[$('area').value];state.area=$('area').value;state.center={lat:a.lat,lng:a.lng};state.gps=null;status(a.name+'の地図 · 現在地未取得');state.query='';$('search').value='';state.lastQuery='';state.searchMapActive=false;state.searchOriginalView=null;clearGeocode();updateMap();fetchPlaces()}
+function resetArea(){const a=AREAS[$('area').value];state.area=$('area').value;state.center={lat:a.lat,lng:a.lng};state.gps=null;status(a.name+'の地図 · 現在地未取得');state.query='';$('search').value='';state.lastQuery='';state.searchMapActive=false;state.searchOriginalView=null;clearGeocode();updateMap();fetchPlaces();if(state.filter==='literature')focusLiteraryRegion()}
 function onSearchInput(){
  const previous=state.query;
  state.query=$('search').value.trim();
