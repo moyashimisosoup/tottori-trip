@@ -1,0 +1,276 @@
+{
+  "version": "2026-10-25-v2",
+  "source": "ChatGPT生成：レトロな日本観光アイコン18種スプライトシート.png",
+  "sourceDimensions": [
+    1774,
+    887
+  ],
+  "sourceLicense": "project-created art; original available with user-facing archive",
+  "sourceSHA256": "",
+  "atlas": "tottori-icon-atlas-18.png",
+  "atlasSize": [
+    288,
+    144
+  ],
+  "pixelCell": [
+    48,
+    48
+  ],
+  "atlasBytes": 6555,
+  "atlasSHA256": "ac212da967cadc9f5f8cac83a298d5ec03d8e830c129ca726c44c81646a27bdf",
+  "safety": "do not use background sprites to infer a different primary category",
+  "icons": [
+    {
+      "key": "torii",
+      "label": "鳥居・神社",
+      "grid": [
+        0,
+        0
+      ],
+      "rectangle": [
+        0,
+        0,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "post",
+      "label": "郵便局",
+      "grid": [
+        1,
+        0
+      ],
+      "rectangle": [
+        48,
+        0,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "cafe",
+      "label": "カフェ・喫茶",
+      "grid": [
+        2,
+        0
+      ],
+      "rectangle": [
+        96,
+        0,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "restaurant",
+      "label": "一般飲食店",
+      "grid": [
+        3,
+        0
+      ],
+      "rectangle": [
+        144,
+        0,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "bakery",
+      "label": "パン屋",
+      "grid": [
+        4,
+        0
+      ],
+      "rectangle": [
+        192,
+        0,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "sweets",
+      "label": "和菓子・甘味",
+      "grid": [
+        5,
+        0
+      ],
+      "rectangle": [
+        240,
+        0,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "seafood",
+      "label": "海鮮",
+      "grid": [
+        0,
+        1
+      ],
+      "rectangle": [
+        0,
+        48,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "monument",
+      "label": "文学碑・記念碑",
+      "grid": [
+        1,
+        1
+      ],
+      "rectangle": [
+        48,
+        48,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "old_house",
+      "label": "旧宅・生家",
+      "grid": [
+        2,
+        1
+      ],
+      "rectangle": [
+        96,
+        48,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "museum",
+      "label": "博物館・資料館",
+      "grid": [
+        3,
+        1
+      ],
+      "rectangle": [
+        144,
+        48,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "ruins",
+      "label": "遺跡",
+      "grid": [
+        4,
+        1
+      ],
+      "rectangle": [
+        192,
+        48,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "kofun",
+      "label": "古墳",
+      "grid": [
+        5,
+        1
+      ],
+      "rectangle": [
+        240,
+        48,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "dunes",
+      "label": "砂丘",
+      "grid": [
+        0,
+        2
+      ],
+      "rectangle": [
+        0,
+        96,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "coast",
+      "label": "海岸",
+      "grid": [
+        1,
+        2
+      ],
+      "rectangle": [
+        48,
+        96,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "waterfall",
+      "label": "滝",
+      "grid": [
+        2,
+        2
+      ],
+      "rectangle": [
+        96,
+        96,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "onsen",
+      "label": "温泉",
+      "grid": [
+        3,
+        2
+      ],
+      "rectangle": [
+        144,
+        96,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "station",
+      "label": "駅",
+      "grid": [
+        4,
+        2
+      ],
+      "rectangle": [
+        192,
+        96,
+        48,
+        48
+      ]
+    },
+    {
+      "key": "information",
+      "label": "観光案内所",
+      "grid": [
+        5,
+        2
+      ],
+      "rectangle": [
+        240,
+        96,
+        48,
+        48
+      ]
+    }
+  ]
+}
