@@ -1,6 +1,5 @@
-/* APP-025 literary and notable-person place data batches 01 and 02.
-   Map pins require individually verified facility coordinates.
-   Approximate referenceArea is for list discovery ONLY, not visit/near-miss. */
+/* APP-025 literary/people datasets batches 01 and 02.
+   Only published facility coordinates produce map pins; referenceArea never does. */
 window.TOTTORI_LITERARY_BATCH_01=[
   {
     "id": "lit01:mochigase:01",
@@ -950,25 +949,23 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "area": "yonago",
     "type": "people",
     "relatedTypes": [],
-    "lat": null,
-    "lng": null,
-    "referenceArea": {
-      "lat": 35.37,
-      "lng": 133.47,
-      "radius": 15000
-    },
+    "lat": 35.389857,
+    "lng": 133.435732,
     "address": "西伯郡伯耆町須村353-3",
     "note": "写真家・植田正治の作品を展示。",
-    "source": "reference",
-    "verified": false,
+    "source": "curated",
+    "verified": true,
     "category": "people",
     "url": "https://www.houki-town.jp/ueda/information/",
     "licenses": [],
     "attributions": [
-      "https://www.houki-town.jp/ueda/information/"
+      "https://www.houki-town.jp/ueda/information/",
+      "https://www.navitime.co.jp/poi?spot=02301-2700511"
     ],
     "group": "人物ゆかりの施設",
-    "mapQuery": "植田正治写真美術館 西伯郡伯耆町須村353-3"
+    "mapQuery": "植田正治写真美術館 西伯郡伯耆町須村353-3",
+    "coordinateSource": "https://www.navitime.co.jp/poi?spot=02301-2700511",
+    "coordinateNote": "NAVITIME美術館地点・伯耆町立写真美術館"
   },
   {
     "id": "lit01:other:07",
@@ -1205,24 +1202,22 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "area": "tottori",
     "type": "people",
     "relatedTypes": [],
-    "lat": null,
-    "lng": null,
-    "verified": false,
-    "source": "reference",
+    "lat": 35.496131,
+    "lng": 134.227073,
+    "verified": true,
+    "source": "curated",
     "category": "people",
-    "referenceArea": {
-      "lat": 35.496,
-      "lng": 134.228,
-      "radius": 6500
-    },
     "address": "鳥取市栄町（鳥取民藝美術館隣接）",
     "note": "吉田璋也が創業した民藝専門店。鳥取を中心とした手仕事を紹介。",
     "url": "https://www.tottori-mingei.jp/about.html",
     "mapQuery": "鳥取たくみ工芸店 鳥取市",
     "licenses": [],
     "attributions": [
-      "鳥取民藝美術館公式"
-    ]
+      "鳥取民藝美術館公式",
+      "https://www.navitime.co.jp/poi?spot=02301-2700587"
+    ],
+    "coordinateSource": "https://www.navitime.co.jp/poi?spot=02301-2700587",
+    "coordinateNote": "NAVITIME店舗地点・公式住所"
   },
   {
     "id": "lit02:yonago:01",
