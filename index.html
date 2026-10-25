@@ -5,11 +5,11 @@
 <meta name="theme-color" content="#27334a"><meta name="description" content="鳥取の旅で訪れた・見つけた・すれ違った場所を、ひとつの旅帖に。">
 <title>とっとりトリップ</title>
 <link rel="stylesheet" href="vendor/leaflet.css?v=1.9.4-20261025">
-<link rel="stylesheet" href="styles.css?v=20261025-14">
+<link rel="stylesheet" href="styles.css?v=20261025-15">
 <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script defer src="literary-batch-01.js?v=20261025-03"></script>
 <script defer src="official-landmarks.js?v=20261025-02"></script>
-<script defer src="app.js?v=20261025-20"></script>
+<script defer src="app.js?v=20261025-21"></script>
 </head>
 <body>
 <div class="shell">
@@ -61,7 +61,7 @@
   </main>
   <footer><span>© <a href="https://openpoiapi.com/attribution.html" target="_blank" rel="noopener">OpenPOI API</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></span><span>旅の記録はこの端末に保存</span></footer>
 </div>
-<dialog id="detail"><form method="dialog" class="dialog-head"><span id="detailType">SPOT</span><button aria-label="閉じる">×</button></form><h2 id="detailName"></h2><div class="detail-meta" id="detailMeta"></div><p id="detailNote"></p><div id="detailTags"></div><div class="detail-actions"><button id="visitBtn" class="primary" type="button">✓ 訪れた</button><button id="nearBtn" type="button">◇ すれ違った</button><button id="confirmPositionBtn" type="button" hidden>⌖ この位置を確認・自動判定に使う</button><button id="viewOnMapBtn" type="button">⌖ 地図で見る</button><button id="googleMapsBtn" type="button">↗ Googleマップ</button></div></dialog>
+<dialog id="detail" aria-labelledby="detailName"><form method="dialog" class="dialog-head"><span id="detailType">SPOT</span><button aria-label="閉じる">×</button></form><div class="detail-heading"><span id="detailIcon" class="detail-icon" aria-hidden="true"></span><h2 id="detailName"></h2></div><div class="detail-meta" id="detailMeta"></div><p id="detailNote"></p><div id="detailTags"></div><div class="detail-actions"><button id="visitBtn" class="primary" type="button">✓ 訪れた</button><button id="nearBtn" type="button">◇ すれ違った</button><button id="confirmPositionBtn" type="button" hidden>⌖ この位置を確認・自動判定に使う</button><button id="viewOnMapBtn" type="button">⌖ 地図で見る</button><button id="googleMapsBtn" type="button">↗ Googleマップ</button></div></dialog>
 <dialog id="settings" aria-labelledby="settingsTitle">
   <form method="dialog" class="dialog-head"><span>設定</span><button type="submit" aria-label="閉じる">×</button></form>
   <h2 id="settingsTitle">表示の設定</h2>
