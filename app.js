@@ -178,7 +178,7 @@ const initial=()=>{
   return obj
  }catch{return {}}
 };
-const state={area:'tottori',center:AREAS.tottori,filter:'all',query:'',places:[],results:[],journal:initial(),tab:'places',journalFilter:'all',journalStatus:'all',selected:null,map:null,markers:null,gps:null,watch:null,tracking:false,lastFetch:0,lastLoc:null,toastTimer:0,loading:false,searchMapActive:false,searchOriginalView:null,geocodeResult:null,prefs:loadPreferences()};
+const state={area:'tottori',center:AREAS.tottori,workShowAll:false,filter:'all',query:'',places:[],results:[],journal:initial(),tab:'places',journalFilter:'all',journalStatus:'all',selected:null,map:null,markers:null,gps:null,watch:null,tracking:false,lastFetch:0,lastLoc:null,toastTimer:0,loading:false,searchMapActive:false,searchOriginalView:null,geocodeResult:null,prefs:loadPreferences()};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state.journal))}catch{toast('保存できません。空き容量をご確認ください')}}
 function idOf(p){return p.id||'poi:'+([p.source||'',p.name||'',Number(p.lat).toFixed(5),Number(p.lng).toFixed(5)].join('|'))}
 // Group the exact station name near its representative point. Similar names
@@ -263,6 +263,8 @@ function eventFor(p,kind){
 function rank(row){return row?.visitedAt?'訪れた':row?.nearAt?'すれ違った':row?.seenAt?'見つけた':''}
 function showTab(tab){state.tab=tab;const on=tab==='places';$('placesPane').hidden=!on;$('journalPane').hidden=on;$('placesTab').classList.toggle('active',on);$('journalTab').classList.toggle('active',!on);$('placesTab').setAttribute('aria-pressed',String(on));$('journalTab').setAttribute('aria-pressed',String(!on));if(!on)renderJournal();else renderList();refreshMapSize(90)}
 const LITERARY_BATCH_01=Array.isArray(window.TOTTORI_LITERARY_BATCH_01)?window.TOTTORI_LITERARY_BATCH_01:[];
+const LITERARY_PLACES_03=Array.isArray(window.TOTTORI_LITERARY_PLACES_03)?window.TOTTORI_LITERARY_PLACES_03:[];
+const LITERARY_WORKS_03=Array.isArray(window.TOTTORI_LITERARY_WORKS_03)?window.TOTTORI_LITERARY_WORKS_03:[];
 const OFFICIAL_LANDMARKS=Array.isArray(window.TOTTORI_OFFICIAL_LANDMARKS)?window.TOTTORI_OFFICIAL_LANDMARKS:[];
 function currentGuides(){
  // Text searches cover every registered area, independent of the map viewport.
@@ -273,6 +275,7 @@ function currentGuides(){
   ...GUIDES.filter(inArea),
   ...CULTURE_SPOTS.filter(inArea),
   ...LITERARY_BATCH_01.filter(inArea),
+  ...LITERARY_PLACES_03.filter(inArea),
   ...OFFICIAL_LANDMARKS.filter(inArea),
   ...(searchAll||state.area==='tottori'?HOSAI_MONUMENTS:[])
  ].map(withCatalog)
@@ -630,12 +633,45 @@ function mapPoiIcon(p,extraClass=''){
   iconSize:[38,44],iconAnchor:[19,41],popupAnchor:[0,-38]})
 }
 function fillPlaceCard(place,row){const btn=document.createElement('button');btn.className='place-card';btn.type='button';btn.dataset.id=place.id;const [,label]=TYPES[place.type]||TYPES.other;btn.innerHTML=`<span class="symbol" aria-hidden="true">${pixelIcon(place)}</span><span class="content"><span class="name">${q(place.name)}</span>${badgesFor(place,row)}<span class="minor">${q(prettyDist(place))}</span></span><span class="arrow" aria-hidden="true">›</span>`;btn.addEventListener('click',()=>openDetail(place));return btn}
+function literaryWorkMatches(work){
+ const term=normalizedSearch(state.query);
+ if(!term&&work.area!==state.area)return false;
+ if(!term)return true;
+ const hay=normalizedSearch([work.title,work.author,work.place].join(' '));
+ return term.split(/\s+/).every(part=>hay.includes(part))
+}
+function renderLiteraryWorks(){
+ const pane=$('literaryWorksSection');
+ const works=LITERARY_WORKS_03.filter(literaryWorkMatches);
+ const show=(state.filter==='literature'||(!!state.query.trim()&&works.length>0))&&state.tab==='places';
+ pane.hidden=!show;
+ if(!show)return;
+ const limit=state.workShowAll?works.length:8;
+ $('literaryWorkCount').textContent=works.length+'作品';
+ $('literaryWorkCards').replaceChildren(...works.slice(0,limit).map(work=>{
+  const card=document.createElement('div');card.className='literary-work-card';
+  const title=document.createElement('strong');title.textContent=work.title;
+  const line=document.createElement('div');line.className='literary-work-author';line.textContent=work.author+' · '+work.place;
+  const actions=document.createElement('div');actions.className='literary-work-actions';
+  const src=document.createElement('a');src.href=work.sourceUrl;src.target='_blank';src.rel='noopener noreferrer';
+  src.textContent='県立図書館の資料 ↗';
+  const place=state.places.find(p=>p.id===work.targetId);
+  if(place){
+   const b=document.createElement('button');b.type='button';b.textContent='関連地点を開く';
+   b.addEventListener('click',()=>openDetail(place));actions.appendChild(b)
+  }
+  actions.appendChild(src);card.append(title,line,actions);return card
+ }));
+ $('literaryWorkMore').hidden=works.length<=8;
+ $('literaryWorkMore').textContent=state.workShowAll?'少なく表示':'残り'+(works.length-8)+'作品を見る';
+}
 function renderList(){
  state.places=allPlaces();
  const list=filtered(),search=state.query.trim(),candidate=search?state.geocodeResult:null;
  const geo=candidate&&!list.some(p=>placeKey(p)===placeKey(geoPlace(candidate)))?candidate:null;
  $('placesCount').textContent=list.length+(geo?1:0);
  $('places').replaceChildren(...(geo?[geocodeResultCard(geo)]:[]),...list.map(p=>fillPlaceCard(p,journalRecordFor(p))));
+ renderLiteraryWorks();
  if(!state.loading)$('message').textContent=search?
   (list.length||geo?`「${search}」の検索結果 ${list.length+(geo?1:0)}件（地図外の登録地点・地図検索を含む）`:
    `「${search}」に一致する地点はありません。`):
@@ -1100,5 +1136,5 @@ function init(){applyPreferences();mapInit();
  $('settingsBtn').addEventListener('click',()=>$('settings').showModal());
  $('showOtherPlaces').addEventListener('change',()=>updatePreferences());
  document.querySelectorAll('[data-tone-choice]').forEach(b=>b.addEventListener('click',()=>updatePreferences(Number(b.dataset.toneChoice))));
- $('stats').addEventListener('click',e=>{const target=e.target.closest('[data-journal-status]');if(target)toggleJournalStatus(target.dataset.journalStatus)});$('area').addEventListener('change',resetArea);$('locateBtn').addEventListener('click',locate);$('trackBtn').addEventListener('click',toggleTracking);$('searchForm').addEventListener('submit',doSearch);$('search').addEventListener('input',onSearchInput);$('searchHereBtn').addEventListener('click',searchVisibleMap);document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>chooseFilter(b.dataset.filter)));$('placesTab').addEventListener('click',()=>showTab('places'));$('journalTab').addEventListener('click',()=>showTab('journal'));$('journalFilter').addEventListener('change',e=>setJournalFilter(e.target.value));$('visitBtn').addEventListener('click',()=>recordClick('visited'));$('nearBtn').addEventListener('click',()=>recordClick('near'));$('googleMapsBtn').addEventListener('click',openGoogle);$('googleSearchBtn').addEventListener('click',openGoogleSearch);$('viewOnMapBtn').addEventListener('click',viewOnMap);$('mapSourceBtn').addEventListener('click',changeMapProvider);$('mapRetryBtn').addEventListener('click',reloadMapTiles);$('mapFallbackRetryBtn').addEventListener('click',reloadMapTiles);$('infoBtn').addEventListener('click',()=>$('info').showModal());$('imageBtn').addEventListener('click',imageExport);$('printBtn').addEventListener('click',()=>{renderJournal();window.print()});$('backupBtn').addEventListener('click',backup);$('restoreFile').addEventListener('change',restore);$('journalCount').textContent=journalRows().length;renderList();fetchPlaces();}
+ $('stats').addEventListener('click',e=>{const target=e.target.closest('[data-journal-status]');if(target)toggleJournalStatus(target.dataset.journalStatus)});$('area').addEventListener('change',resetArea);$('locateBtn').addEventListener('click',locate);$('trackBtn').addEventListener('click',toggleTracking);$('searchForm').addEventListener('submit',doSearch);$('search').addEventListener('input',onSearchInput);$('searchHereBtn').addEventListener('click',searchVisibleMap);$('literaryWorkMore').addEventListener('click',()=>{state.workShowAll=!state.workShowAll;renderLiteraryWorks()});document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>chooseFilter(b.dataset.filter)));$('placesTab').addEventListener('click',()=>showTab('places'));$('journalTab').addEventListener('click',()=>showTab('journal'));$('journalFilter').addEventListener('change',e=>setJournalFilter(e.target.value));$('visitBtn').addEventListener('click',()=>recordClick('visited'));$('nearBtn').addEventListener('click',()=>recordClick('near'));$('googleMapsBtn').addEventListener('click',openGoogle);$('googleSearchBtn').addEventListener('click',openGoogleSearch);$('viewOnMapBtn').addEventListener('click',viewOnMap);$('mapSourceBtn').addEventListener('click',changeMapProvider);$('mapRetryBtn').addEventListener('click',reloadMapTiles);$('mapFallbackRetryBtn').addEventListener('click',reloadMapTiles);$('infoBtn').addEventListener('click',()=>$('info').showModal());$('imageBtn').addEventListener('click',imageExport);$('printBtn').addEventListener('click',()=>{renderJournal();window.print()});$('backupBtn').addEventListener('click',backup);$('restoreFile').addEventListener('change',restore);$('journalCount').textContent=journalRows().length;renderList();fetchPlaces();}
 if(document.readyState==='complete')init();else window.addEventListener('load',init,{once:true});
