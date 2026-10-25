@@ -5,10 +5,10 @@
 <meta name="theme-color" content="#27334a"><meta name="description" content="鳥取の旅で訪れた・見つけた・すれ違った場所を、ひとつの旅帖に。">
 <title>とっとりトリップ</title>
 <link rel="stylesheet" href="vendor/leaflet.css?v=1.9.4-20261025">
-<link rel="stylesheet" href="styles.css?v=20261025-8">
+<link rel="stylesheet" href="styles.css?v=20261025-9">
 <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script defer src="literary-batch-01.js?v=20261025-02"></script>
-<script defer src="app.js?v=20261025-10"></script>
+<script defer src="literary-batch-01.js?v=20261025-03"></script>
+<script defer src="app.js?v=20261025-11"></script>
 </head>
 <body>
 <div class="shell">
@@ -56,7 +56,7 @@
     </section>
     <section class="tabs" aria-label="表示切替"><button id="placesTab" class="tab active" aria-pressed="true">みつける <span id="placesCount">0</span></button><button id="journalTab" class="tab" aria-pressed="false">旅帖 <span id="journalCount">0</span></button></section>
     <section id="placesPane"><div id="message" class="message" role="status" aria-live="polite">地図の近くを探しています…</div><div id="places" class="cards"></div></section>
-    <section id="journalPane" hidden><div class="journal-stats" id="stats"></div><div id="journal" class="cards"></div><div class="export"><button id="imageBtn">▣ 画像にする</button><button id="printBtn">▤ PDFにする</button><button id="backupBtn">↓ バックアップ</button><label class="import-btn" for="restoreFile">↑ 復元</label><input id="restoreFile" type="file" accept="application/json,.json" hidden></div></section>
+    <section id="journalPane" hidden><div class="journal-toolbar"><label for="journalFilter">絞り込み</label><select id="journalFilter" aria-label="旅帖のジャンル"><option value="all">すべて</option><option value="sight">名所</option><option value="history">史跡</option><option value="literature">文学</option><option value="people">偉人</option><option value="food">飲食</option><option value="adult">風俗</option><option value="other">施設</option></select><span id="journalShownCount">0件</span></div><div class="journal-stats" id="stats"></div><div id="journal" class="cards"></div><div class="export"><button id="imageBtn">▣ 画像にする</button><button id="printBtn">▤ PDFにする</button><button id="backupBtn">↓ バックアップ</button><label class="import-btn" for="restoreFile">↑ 復元</label><input id="restoreFile" type="file" accept="application/json,.json" hidden></div></section>
   </main>
   <footer><span>© <a href="https://openpoiapi.com/attribution.html" target="_blank" rel="noopener">OpenPOI API</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></span><span>旅の記録はこの端末に保存</span></footer>
 </div>
