@@ -889,7 +889,7 @@ function drawMarkers(){
  for(const originals of approximateGroups.values()){
   // A broad "literary monuments in the area" umbrella record should not
   // inflate the count when its five individual inscriptions are also listed.
-  const individual=originals.filter(p=>!p.group);
+  const individual=originals.filter(p=>p.group!=='literary-cluster');
   const spots=individual.length?individual:originals;
   const first=spots[0],cluster=spots.length>1;
   const icon=cluster?
