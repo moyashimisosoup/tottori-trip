@@ -202,7 +202,30 @@ function pixelIcon(p){
 function fillPlaceCard(place,row){const btn=document.createElement('button');btn.className='place-card';btn.type='button';btn.dataset.id=place.id;const [,label]=TYPES[place.type]||TYPES.other;btn.innerHTML=`<span class="symbol" aria-hidden="true">${pixelIcon(place)}</span><span class="content"><span class="name">${q(place.name)}</span>${badgesFor(place,row)}<span class="minor">${q(prettyDist(place))}</span></span><span class="arrow" aria-hidden="true">›</span>`;btn.addEventListener('click',()=>openDetail(place));return btn}
 function renderList(){state.places=allPlaces();let list=filtered();$('placesCount').textContent=list.length;$('places').replaceChildren(...list.map(p=>fillPlaceCard(p,state.journal[p.id])));if(!state.loading)$('message').textContent=list.length?`${list.length}か所`: 'この条件の場所はありません。エリアやジャンルを変えてください。';drawMarkers(list)}
 function renderJournal(){let rows=Object.values(state.journal).filter(row=>row&&row.place).sort((a,b)=>new Date(b.visitedAt||b.nearAt||b.seenAt||0)-new Date(a.visitedAt||a.nearAt||a.seenAt||0));$('journalCount').textContent=rows.length;$('stats').innerHTML=[['みつけた',rows.filter(r=>r.seenAt).length],['すれ違い',rows.filter(r=>r.nearAt).length],['訪れた',rows.filter(r=>r.visitedAt).length]].map(([k,v])=>`<div class="stat"><b>${v}</b><small>${k}</small></div>`).join('');$('journal').replaceChildren(...(rows.length?rows.map(r=>fillPlaceCard(r.place,r)):[Object.assign(document.createElement('div'),{className:'empty',textContent:'旅の記録はまだありません。'})]));}
-function drawMarkers(list){if(!state.map||!window.L)return;state.markers.clearLayers();for(const p of list){if(p.lat==null||p.lng==null)continue;const icon=L.divIcon({className:'',html:`<div class="pixel-pin c-${TYPES[p.type]?p.type:'other'}"></div>`,iconSize:[22,22],iconAnchor:[11,11]});const marker=L.marker([p.lat,p.lng],{icon});marker.on('click',()=>openDetail(p));marker.addTo(state.markers)}if(state.gps){L.circleMarker([state.gps.lat,state.gps.lng],{radius:6,color:'#fff',weight:3,fillColor:'#276c98',fillOpacity:1}).addTo(state.markers)}}
+function markerCategory(p){
+ // A dual-classified literary landmark is a people marker while the people
+ // filter is active; otherwise it keeps its primary category in "all".
+ if(state.filter!=='all'&&(p.type===state.filter||p.relatedTypes?.includes(state.filter)))
+  return state.filter;
+ return TYPES[p.type]?p.type:'other'
+}
+function drawMarkers(list){
+ if(!state.map||!window.L)return;
+ state.markers.clearLayers();
+ for(const p of list){
+  if(p.lat==null||p.lng==null)continue;
+  const icon=L.divIcon({
+   className:'',
+   html:`<div class="pixel-pin c-${markerCategory(p)}"></div>`,
+   iconSize:[22,22],iconAnchor:[11,11]
+  });
+  const marker=L.marker([p.lat,p.lng],{icon});
+  marker.on('click',()=>openDetail(p));
+  marker.addTo(state.markers)
+ }
+ if(state.gps)L.circleMarker([state.gps.lat,state.gps.lng],
+  {radius:6,color:'#fff',weight:3,fillColor:'#276c98',fillOpacity:1}).addTo(state.markers)
+}
 // Match the stable map implementation in yama-books/mansion-poet:
 // ordinary Leaflet TileLayer, GSI pale tiles, no custom GridLayer / tile fallbacks.
 // OpenPOI provides only facility coordinates and is independent of basemap images.
@@ -392,7 +415,7 @@ function viewOnMap(){
  if(!state.map){window.open(googleMapsLink(p),'_blank','noopener');return}
  if(state.focusMarker)state.map.removeLayer(state.focusMarker);
  state.map.setView([p.lat,p.lng],Math.max(15,state.map.getZoom()),{animate:false});
- const icon=L.divIcon({className:'',html:'<div class="pixel-pin c-'+(TYPES[p.type]?p.type:'other')+' focus-pin"></div>',iconSize:[28,28],iconAnchor:[14,14]});
+ const icon=L.divIcon({className:'',html:'<div class="pixel-pin c-'+markerCategory(p)+' focus-pin"></div>',iconSize:[28,28],iconAnchor:[14,14]});
  state.focusMarker=L.marker([p.lat,p.lng],{icon,zIndexOffset:1000}).addTo(state.map);
  $('mapFallbackLink').href=googleMapsLink(p);$('mapNoticeLink').href=googleMapsLink(p);
  document.querySelector('.map-wrap').scrollIntoView({behavior:'smooth',block:'center'});
