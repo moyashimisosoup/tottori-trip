@@ -73,7 +73,7 @@ const initial=()=>{
   return obj
  }catch{return {}}
 };
-const state={area:'tottori',center:AREAS.tottori,filter:'all',query:'',places:[],results:[],journal:initial(),tab:'places',selected:null,map:null,markers:null,gps:null,watch:null,tracking:false,adultOK:false,lastFetch:0,lastLoc:null,toastTimer:0,loading:false};
+const state={area:'tottori',center:AREAS.tottori,filter:'all',query:'',places:[],results:[],journal:initial(),tab:'places',journalFilter:'all',selected:null,map:null,markers:null,gps:null,watch:null,tracking:false,adultOK:false,lastFetch:0,lastLoc:null,toastTimer:0,loading:false};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state.journal))}catch{toast('保存できません。空き容量をご確認ください')}}
 function idOf(p){return p.id||'poi:'+([p.source||'',p.name||'',Number(p.lat).toFixed(5),Number(p.lng).toFixed(5)].join('|'))}
 function normalize(raw){if(!raw||!raw.name)return null;const lat=raw.lat===''||raw.lat==null?null:Number(raw.lat);const lng=raw.lng===''||raw.lng==null?null:Number(raw.lng);if(lat!==null&&(!Number.isFinite(lat)||lat < -90||lat>90))return null;if(lng!==null&&(!Number.isFinite(lng)||lng< -180||lng>180))return null;
@@ -201,7 +201,26 @@ function pixelIcon(p){
 
 function fillPlaceCard(place,row){const btn=document.createElement('button');btn.className='place-card';btn.type='button';btn.dataset.id=place.id;const [,label]=TYPES[place.type]||TYPES.other;btn.innerHTML=`<span class="symbol" aria-hidden="true">${pixelIcon(place)}</span><span class="content"><span class="name">${q(place.name)}</span>${badgesFor(place,row)}<span class="minor">${q(prettyDist(place))}</span></span><span class="arrow" aria-hidden="true">›</span>`;btn.addEventListener('click',()=>openDetail(place));return btn}
 function renderList(){state.places=allPlaces();let list=filtered();$('placesCount').textContent=list.length;$('places').replaceChildren(...list.map(p=>fillPlaceCard(p,state.journal[p.id])));if(!state.loading)$('message').textContent=list.length?`${list.length}か所`: 'この条件の場所はありません。エリアやジャンルを変えてください。';drawMarkers(list)}
-function renderJournal(){let rows=Object.values(state.journal).filter(row=>row&&row.place).sort((a,b)=>new Date(b.visitedAt||b.nearAt||b.seenAt||0)-new Date(a.visitedAt||a.nearAt||a.seenAt||0));$('journalCount').textContent=rows.length;$('stats').innerHTML=[['みつけた',rows.filter(r=>r.seenAt).length],['すれ違い',rows.filter(r=>r.nearAt).length],['訪れた',rows.filter(r=>r.visitedAt).length]].map(([k,v])=>`<div class="stat"><b>${v}</b><small>${k}</small></div>`).join('');$('journal').replaceChildren(...(rows.length?rows.map(r=>fillPlaceCard(r.place,r)):[Object.assign(document.createElement('div'),{className:'empty',textContent:'旅の記録はまだありません。'})]));}
+function renderJournal(){
+ const all=Object.values(state.journal).filter(row=>row&&row.place);
+ const selection=state.journalFilter;
+ const rows=all.filter(row=>selection==='all'||
+  row.place.type===selection||row.place.relatedTypes?.includes(selection))
+  .sort((a,b)=>new Date(b.visitedAt||b.nearAt||b.seenAt||0)-new Date(a.visitedAt||a.nearAt||a.seenAt||0));
+ $('journalCount').textContent=all.length;
+ $('journalShownCount').textContent=rows.length+'件';
+ $('stats').innerHTML=[['みつけた',rows.filter(r=>r.seenAt).length],
+  ['すれ違い',rows.filter(r=>r.nearAt).length],
+  ['訪れた',rows.filter(r=>r.visitedAt).length]]
+  .map(([k,v])=>`<div class="stat"><b>${v}</b><small>${k}</small></div>`).join('');
+ $('journal').replaceChildren(...(rows.length?rows.map(r=>fillPlaceCard(r.place,r)):
+  [Object.assign(document.createElement('div'),{className:'empty',
+   textContent:all.length?'このジャンルの記録はまだありません。':'旅の記録はまだありません。'})]));
+}
+function setJournalFilter(category){
+ state.journalFilter=['all','sight','history','literature','people','food','adult','other'].includes(category)?category:'all';
+ renderJournal()
+}
 function markerCategory(p){
  // A dual-classified literary landmark is a people marker while the people
  // filter is active; otherwise it keeps its primary category in "all".
@@ -223,8 +242,15 @@ function drawMarkers(list){
   marker.on('click',()=>openDetail(p));
   marker.addTo(state.markers)
  }
- if(state.gps)L.circleMarker([state.gps.lat,state.gps.lng],
-  {radius:6,color:'#fff',weight:3,fillColor:'#276c98',fillOpacity:1}).addTo(state.markers)
+ if(state.gps){
+  // Current GPS position is distinct in both shape and color from all categories.
+  const gpsIcon=L.divIcon({
+   className:'',html:'<div class="gps-position" aria-hidden="true"><span></span></div>',
+   iconSize:[26,26],iconAnchor:[13,13]
+  });
+  L.marker([state.gps.lat,state.gps.lng],{icon:gpsIcon,zIndexOffset:2500,
+   interactive:false,keyboard:false}).addTo(state.markers)
+ }
 }
 // Match the stable map implementation in yama-books/mansion-poet:
 // ordinary Leaflet TileLayer, GSI pale tiles, no custom GridLayer / tile fallbacks.
