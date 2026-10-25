@@ -569,8 +569,10 @@ function drawMarkers(list){
   marker.on('click',()=>openDetail(p));
   marker.addTo(state.markers)
  }
- if(state.query.trim()&&state.geocodeResult){
-  // Temporary search marker. Never make a journal entry or count a GPS discovery.
+ if(state.query.trim()&&state.geocodeResult&&
+    !list.some(p=>placeKey(p)===placeKey(geoPlace(state.geocodeResult)))){ 
+  // Show a highlighted temporary icon only when no ordinary matching pin exists.
+  // Never create two stacked markers for a saved station such as 鳥取駅.
   const p=state.geocodeResult,place=geoPlace(p);
   const icon=mapPoiIcon(place,'is-search');
   L.marker([p.lat,p.lng],{icon,zIndexOffset:1600})
