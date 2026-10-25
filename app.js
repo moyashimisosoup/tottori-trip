@@ -118,7 +118,10 @@ function currentGuides(){
 }
 function allPlaces(){
  const items=new Map();
- for(const item of [...currentGuides(),...state.results]){
+ const savedSearch=Object.values(state.journal)
+  .filter(row=>row?.place&&['gsi-search','railway-search'].includes(row.place.source))
+  .map(row=>row.place);
+ for(const item of [...currentGuides(),...state.results,...savedSearch]){
   if(isNightlifeName(item.name))continue;
   const nextType=effectiveType(item);
   const p=nextType===item.type?item:{...item,type:nextType};
@@ -245,17 +248,39 @@ function knownPlaceSearch(keyword){
  };
  return null
 }
+function geoPlace(p){
+ const name=p.title||p.query||'検索した地点';
+ const lat=Number(p.lat),lng=Number(p.lng);
+ const station=p.source==='railway';
+ return {
+  id:station&&normalizedSearch(name)==='鳥取駅'?'search:railway:tottori':
+   'search:gsi:'+normalizedSearch(name)+':'+lat.toFixed(5)+','+lng.toFixed(5),
+  name,lat,lng,address:station?'鳥取市東品治町111':name,
+  type:classify({name}),category:station?'railway_station':'unknown',
+  source:station?'railway-search':'gsi-search',
+  verified:station,
+  accuracyClass:station?'facility':'area',
+  note:station?'JR鳥取駅の代表地点。GPSの位置には誤差があります。':
+   '国土地理院の地名・住所検索で得た代表地点です。町丁目などの代表点の場合もあるため、GPS自動判定には位置確認が必要です。',
+  url:p.sourceUrl||'https://maps.gsi.go.jp/',
+  attributions:[p.sourceUrl||'https://maps.gsi.go.jp/'],
+  licenses:[]
+ }
+}
 function geocodeResultCard(p){
- const btn=document.createElement('button');
- btn.className='place-card geocode-card';btn.type='button';
- // No eventFor(), save(), or openDetail(): search results are transient.
- btn.innerHTML='<span class="symbol">⌕</span><span class="content">'+
-  '<span class="name">'+q(p.title)+'</span>'+
-  '<span class="badges"><span class="badge badge-reference">地図検索・未登録</span></span>'+
-  '<span class="minor">'+(p.source==='railway'?'駅の代表座標':'地理院検索の参考座標')+
-  '（旅帖の自動判定対象外）</span></span><span class="arrow">›</span>';
- btn.addEventListener('click',()=>{focusSearchResults({silent:true});document.querySelector('.map-wrap')?.scrollIntoView({behavior:'smooth',block:'center'})});
- return btn
+ const place=geoPlace(p);
+ const btn=fillPlaceCard(place,state.journal[place.id]);
+ btn.classList.add('geocode-card');
+ // A geocoded hit is a real candidate: open the normal details/journal controls.
+ const direct=document.createElement('button');
+ direct.className='place-card geocode-card';direct.type='button';
+ direct.innerHTML='<span class="symbol">⌕</span><span class="content">'+
+  '<span class="name">'+q(place.name)+'</span>'+
+  '<span class="badges"><span class="badge badge-reference">地図検索の地点</span></span>'+
+  '<span class="minor">'+(place.verified?'施設代表位置・すれ違い対象':
+   '代表位置・位置確認後すれ違い対象に変更可')+'</span></span><span class="arrow">›</span>';
+ direct.addEventListener('click',()=>openDetail(place));
+ return direct
 }
 function clearGeocode(){
  geoReqSeq++;
@@ -381,7 +406,8 @@ function pixelIcon(p){
 function fillPlaceCard(place,row){const btn=document.createElement('button');btn.className='place-card';btn.type='button';btn.dataset.id=place.id;const [,label]=TYPES[place.type]||TYPES.other;btn.innerHTML=`<span class="symbol" aria-hidden="true">${pixelIcon(place)}</span><span class="content"><span class="name">${q(place.name)}</span>${badgesFor(place,row)}<span class="minor">${q(prettyDist(place))}</span></span><span class="arrow" aria-hidden="true">›</span>`;btn.addEventListener('click',()=>openDetail(place));return btn}
 function renderList(){
  state.places=allPlaces();
- const list=filtered(),search=state.query.trim(),geo=search?state.geocodeResult:null;
+ const list=filtered(),search=state.query.trim(),candidate=search?state.geocodeResult:null;
+ const geo=candidate&&!list.some(p=>p.id===geoPlace(candidate).id)?candidate:null;
  $('placesCount').textContent=list.length+(geo?1:0);
  $('places').replaceChildren(...(geo?[geocodeResultCard(geo)]:[]),...list.map(p=>fillPlaceCard(p,state.journal[p.id])));
  if(!state.loading)$('message').textContent=search?
@@ -464,7 +490,7 @@ function drawMarkers(list){
   const icon=L.divIcon({className:'',html:'<div class="search-pin"><span></span></div>',
    iconSize:[28,28],iconAnchor:[14,14]});
   L.marker([p.lat,p.lng],{icon,zIndexOffset:1600})
-   .on('click',()=>toast(p.title+'（地図検索の参考位置）')).addTo(state.markers)
+   .on('click',()=>openDetail(geoPlace(p))).addTo(state.markers)
  }
  if(state.gps){
   // Current GPS position is distinct in both shape and color from all categories.
@@ -701,7 +727,9 @@ function openDetail(p){
  const sourceLabel=p.source==='tottori-city-poi'?'鳥取市オープンデータ':p.source==='official-tourism'?'とっとり旅（公式）':p.source==='guide'?'観光・施設資料':curated||p.source==='reference'?'公開資料':'OpenPOI API';
  const sourceURL=p.source==='tottori-city-poi'?HOSAI_DATASET:curated||p.source==='reference'||p.source==='guide'||p.source==='official-tourism'?p.url:null;
  const safeSource=sourceURL&&/^https:\/\//.test(sourceURL)?'<a class="detail-source" href="'+q(sourceURL)+'" target="_blank" rel="noopener noreferrer">'+sourceLabel+' ↗</a>':'<small class="detail-source">'+sourceLabel+'</small>';
- $('detailTags').innerHTML=badgesFor(p,row)+safeSource+(p.verified===false?'<small class="detail-source">参考地点・自動すれ違い対象外</small>':'');
+ $('detailTags').innerHTML=badgesFor(p,row)+safeSource+(p.verified===false?'<small class="detail-source">参考位置のため自動判定は保留</small>':'');
+ const confirm=$('confirmPositionBtn');
+ confirm.hidden=!(p.verified===false&&Number.isFinite(p.lat)&&Number.isFinite(p.lng));
  $('viewOnMapBtn').disabled=p.lat==null||p.lng==null;
  $('visitBtn').textContent=row.visitedAt?'✓ 訪問済':'✓ 訪れた';
  $('visitBtn').setAttribute('aria-label',row.visitedAt?'訪問を記録済み':'訪問を記録');
@@ -710,11 +738,45 @@ function openDetail(p){
  $('detail').showModal();renderList()
 }
 function recordClick(kind){const p=state.selected;if(!p)return;eventFor(p,kind);toast(kind==='visited'?'訪問を旅帖に追加しました':'すれ違いを記録しました');$('detail').close();renderList();if(state.tab==='journal')renderJournal()}
+function confirmPosition(){
+ const p=state.selected;
+ if(!p||!Number.isFinite(p.lat)||!Number.isFinite(p.lng)||p.verified===true)return;
+ const selected={...p,verified:true,accuracyClass:'user-confirmed'};
+ state.selected=selected;
+ // Opening the detail already created this journal record; keep its timestamps.
+ eventFor(selected,'seen');
+ if(state.geocodeResult&&geoPlace(state.geocodeResult).id===selected.id)
+  state.geocodeResult={...state.geocodeResult,userConfirmed:true};
+ $('detail').close();
+ toast('位置を確認しました。すれ違い判定の対象です');
+ renderList();
+ if(state.tab==='journal')renderJournal()
+}
 function isTottori(p){return p.lat>=35.0&&p.lat<=35.65&&p.lng>=133.11&&p.lng<=134.58}
 function locationFailure(err){status(err?.code===1?'位置情報が拒否されました':'現在地を取得できません');toast('位置情報の設定をご確認ください')}
 function onLocation(pos,recenter){const p={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:pos.coords.accuracy};const inPref=isTottori(p);state.gps=inPref?p:null;status(inPref?`現在地を取得 · 精度 約${Math.round(p.accuracy)}m`:'鳥取県外 · 鳥取のスポットを表示',inPref);if(recenter){if(!inPref){toast('現在地は鳥取県外です。鳥取のエリアを表示します');renderList();return}state.center={lat:p.lat,lng:p.lng};const ks=Object.keys(AREAS);state.area=ks.reduce((a,b)=>meters(p,AREAS[b])<meters(p,AREAS[a])?b:a);$('area').value=state.area;updateMap();fetchPlaces()}else{drawMarkers(filtered());if(!inPref)return;checkNear();if(state.tracking&&(!state.lastLoc||meters(p,state.lastLoc)>300)&&Date.now()-state.lastFetch>60000){state.center={lat:p.lat,lng:p.lng};state.lastLoc=p;updateMap();fetchPlaces()}}}
 function locate(){if(!navigator.geolocation){toast('この端末では現在地を取得できません');return}status('現在地を確認中…');navigator.geolocation.getCurrentPosition(p=>onLocation(p,true),locationFailure,{enableHighAccuracy:true,timeout:12000,maximumAge:15000})}
-function checkNear(){if(!state.tracking||!state.gps||state.gps.accuracy>80)return;let found=0;for(const p of [...state.results,...currentGuides().filter(g=>g.verified===true&&g.type!=='adult')]){if(p.verified===false||p.lat==null||p.lng==null)continue;const d=meters(state.gps,p);if(d<=160&&!state.journal[p.id]?.nearAt){eventFor(p,'near');found++}}if(found){toast(`${found}か所とすれ違いました`);renderList();if(state.tab==='journal')renderJournal()}}
+function canAutoDetect(p){
+ return p&&p.verified===true&&Number.isFinite(p.lat)&&Number.isFinite(p.lng)
+}
+function checkNear(){
+ if(!state.tracking||!state.gps||state.gps.accuracy>80)return;
+ // Source-agnostic: registered geocodes, official, curated and API sites all qualify
+ // whenever their coordinates are confirmed as a facility-level point.
+ const candidates=new Map();
+ for(const p of [...state.results,...currentGuides(),
+  ...Object.values(state.journal).map(row=>row?.place).filter(Boolean)]){
+  if(canAutoDetect(p))candidates.set(p.id,p)
+ }
+ let found=0;
+ for(const p of candidates.values()){
+  if(meters(state.gps,p)<=160&&!state.journal[p.id]?.nearAt){
+   eventFor(p,'near');found++
+  }
+ }
+ if(found){toast(`${found}か所とすれ違いました`);renderList();
+  if(state.tab==='journal')renderJournal()}
+}
 function toggleTracking(){if(state.tracking){navigator.geolocation.clearWatch(state.watch);state.watch=null;state.tracking=false;$('trackBtn').textContent='◇ すれ違い OFF';$('trackBtn').setAttribute('aria-pressed','false');return}if(!navigator.geolocation){toast('位置情報が使えません');return}state.tracking=true;$('trackBtn').textContent='◆ すれ違い ON';$('trackBtn').setAttribute('aria-pressed','true');state.watch=navigator.geolocation.watchPosition(p=>onLocation(p,false),err=>{locationFailure(err);toggleTracking()},{enableHighAccuracy:true,maximumAge:10000,timeout:20000})}
 function chooseFilter(f){
  if(f!=='all'&&!TYPES[f])return;
@@ -779,5 +841,5 @@ function drawWrapped(ctx,text,x,y,maxWidth,lineHeight,maxLines){const chars=Arra
 function makeCanvas(){const visible=dataRows(state.journalFilter,state.journalStatus),total=visible.length,rows=visible.slice(0,60);const w=900,top=240,rowH=88,h=Math.max(480,top+Math.max(1,rows.length)*rowH+100);const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#f6f2e6';x.fillRect(0,0,w,h);x.fillStyle='#253348';x.font='bold 56px sans-serif';x.fillText('とっとりトリップ',60,100);x.font='24px sans-serif';x.fillText(new Date().toLocaleDateString('ja-JP'),62,150);x.fillText(`みつけた ${rows.filter(r=>r.seenAt).length}   すれ違い ${rows.filter(r=>r.nearAt).length}   訪れた ${rows.filter(r=>r.visitedAt).length}`,60,194);rows.forEach((r,i)=>{const y=top+i*rowH;x.fillStyle=i%2?'#f0ebdd':'#fffdf5';x.fillRect(45,y-12,w-90,rowH-4);x.fillStyle='#253348';x.font='bold 25px sans-serif';drawWrapped(x,r.place.name,60,y+23,650,26,1);x.font='20px sans-serif';x.fillStyle='#6b727b';x.fillText(`${rank(r)}  ${stamp(r.visitedAt||r.nearAt||r.seenAt)}`,62,y+56)});x.fillStyle='#253348';x.font='18px sans-serif';x.fillText(`TOTTORI TRIP  ·  OpenPOI API  ·  ${rows.length}/${total}件`,50,h-32);return c}
 async function imageExport(){try{const c=makeCanvas();const blob=await new Promise(resolve=>c.toBlob(resolve,'image/png'));if(!blob)throw Error('png');const file=new File([blob],'tottori-trip.png',{type:'image/png'});if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:'とっとりトリップ'});return}catch(err){if(err.name==='AbortError')return}}download(blob,'tottori-trip.png');toast('旅帖の画像を作成しました')}catch{toast('画像を作成できませんでした')}}
 function openGoogle(){const p=state.selected;if(p)window.open(googleMapsLink(p),'_blank','noopener')}
-function init(){mapInit();$('stats').addEventListener('click',e=>{const target=e.target.closest('[data-journal-status]');if(target)toggleJournalStatus(target.dataset.journalStatus)});$('area').addEventListener('change',resetArea);$('locateBtn').addEventListener('click',locate);$('trackBtn').addEventListener('click',toggleTracking);$('searchForm').addEventListener('submit',doSearch);$('search').addEventListener('input',onSearchInput);$('searchHereBtn').addEventListener('click',searchVisibleMap);document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>chooseFilter(b.dataset.filter)));$('placesTab').addEventListener('click',()=>showTab('places'));$('journalTab').addEventListener('click',()=>showTab('journal'));$('journalFilter').addEventListener('change',e=>setJournalFilter(e.target.value));$('visitBtn').addEventListener('click',()=>recordClick('visited'));$('nearBtn').addEventListener('click',()=>recordClick('near'));$('googleMapsBtn').addEventListener('click',openGoogle);$('viewOnMapBtn').addEventListener('click',viewOnMap);$('mapSourceBtn').addEventListener('click',changeMapProvider);$('mapRetryBtn').addEventListener('click',reloadMapTiles);$('mapFallbackRetryBtn').addEventListener('click',reloadMapTiles);$('infoBtn').addEventListener('click',()=>$('info').showModal());$('imageBtn').addEventListener('click',imageExport);$('printBtn').addEventListener('click',()=>{renderJournal();window.print()});$('backupBtn').addEventListener('click',backup);$('restoreFile').addEventListener('change',restore);$('journalCount').textContent=Object.keys(state.journal).length;renderList();fetchPlaces();}
+function init(){mapInit();$('stats').addEventListener('click',e=>{const target=e.target.closest('[data-journal-status]');if(target)toggleJournalStatus(target.dataset.journalStatus)});$('area').addEventListener('change',resetArea);$('locateBtn').addEventListener('click',locate);$('trackBtn').addEventListener('click',toggleTracking);$('searchForm').addEventListener('submit',doSearch);$('search').addEventListener('input',onSearchInput);$('searchHereBtn').addEventListener('click',searchVisibleMap);document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>chooseFilter(b.dataset.filter)));$('placesTab').addEventListener('click',()=>showTab('places'));$('journalTab').addEventListener('click',()=>showTab('journal'));$('journalFilter').addEventListener('change',e=>setJournalFilter(e.target.value));$('visitBtn').addEventListener('click',()=>recordClick('visited'));$('nearBtn').addEventListener('click',()=>recordClick('near'));$('confirmPositionBtn').addEventListener('click',confirmPosition);$('googleMapsBtn').addEventListener('click',openGoogle);$('viewOnMapBtn').addEventListener('click',viewOnMap);$('mapSourceBtn').addEventListener('click',changeMapProvider);$('mapRetryBtn').addEventListener('click',reloadMapTiles);$('mapFallbackRetryBtn').addEventListener('click',reloadMapTiles);$('infoBtn').addEventListener('click',()=>$('info').showModal());$('imageBtn').addEventListener('click',imageExport);$('printBtn').addEventListener('click',()=>{renderJournal();window.print()});$('backupBtn').addEventListener('click',backup);$('restoreFile').addEventListener('change',restore);$('journalCount').textContent=Object.keys(state.journal).length;renderList();fetchPlaces();}
 if(document.readyState==='complete')init();else window.addEventListener('load',init,{once:true});
