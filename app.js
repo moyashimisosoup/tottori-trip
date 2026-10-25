@@ -555,6 +555,9 @@ const POI_18_ICONS=new Set([
  * specific names only refine this without changing the category.
  */
 function iconKind(p){
+ // The cafe category always takes precedence over stale source-provided iconKind.
+ // A missing CSS resource must not cause a legacy scroll icon to appear.
+ if(effectiveType(p)==='cafe')return 'cafe-ext';
  if(POI_18_ICONS.has(p.iconKind))return p.iconKind;
  const n=String(p.name||'');
  const c=String(p.category||'').toLowerCase();
