@@ -12,12 +12,12 @@ const AREAS={
 // Locations without reliable map pins deliberately have no coordinates.
 const GUIDES=[
  {name:'鳥取砂丘',type:'sight',lat:35.5407,lng:134.2313,area:'tottori',note:'砂の丘が連なる鳥取を代表する風景。',url:'https://www.tottori-guide.jp/',verified:false},
- {name:'白兎神社',type:'history',lat:35.5231,lng:134.1149,area:'tottori',note:'因幡の白うさぎの神話にゆかりのある神社。',url:'https://www.torican.jp/en/spot/detail_1003.html',verified:false},
+ {name:'白兎神社',type:'temple',lat:35.5231,lng:134.1149,area:'tottori',note:'因幡の白うさぎの神話にゆかりのある神社。',url:'https://www.torican.jp/en/spot/detail_1003.html',verified:false},
  {name:'鳥取城跡',type:'history',lat:35.5117,lng:134.2406,area:'tottori',note:'久松山の麓に残る鳥取城の史跡。',url:'https://www.tottori-guide.jp/',verified:false},
  {name:'仁風閣',type:'history',lat:35.5103,lng:134.2387,area:'tottori',note:'鳥取城跡の近くにある洋風建築。',url:'https://www.pref.tottori.lg.jp/260655.htm',verified:false},
  {name:'尾崎放哉の句碑',type:'literature',lat:null,lng:null,area:'tottori',address:'鳥取市立川町1丁目',note:'自由律俳句の俳人、尾崎放哉の句碑。',url:'https://www.pref.tottori.lg.jp/dd.aspx?menuid=73376',verified:false},
  {name:'尾崎放哉生誕の地',type:'people',lat:null,lng:null,area:'tottori',address:'鳥取市吉方町2丁目',note:'鳥取出身の俳人、尾崎放哉の生誕地。',url:'https://www.pref.tottori.lg.jp/dd.aspx?menuid=73376',verified:false},
- {name:'倉吉白壁土蔵群',type:'history',lat:35.4333,lng:133.8249,area:'kurayoshi',note:'白壁の土蔵が並ぶ歴史的な町並み。',url:'https://www.tottori-guide.jp/',verified:false},
+ {name:'倉吉白壁土蔵群',type:'sight',lat:35.4333,lng:133.8249,area:'kurayoshi',note:'白壁の土蔵が並ぶ歴史的な町並み。',url:'https://www.tottori-guide.jp/',verified:false},
  {name:'三朝温泉',type:'sight',lat:35.4083,lng:133.8941,area:'kurayoshi',note:'三徳川沿いに広がる温泉街。',url:'https://www.tottori-guide.jp/',verified:false},
  {name:'青山剛昌ふるさと館',type:'people',lat:35.4980281,lng:133.7618124,area:'kurayoshi',note:'漫画家・青山剛昌の記念館。2027年の移転計画あり。',url:'https://www.gamf.jp/42.html',verified:true,relatedTypes:['literature']},
  {name:'水木しげるロード',type:'people',lat:35.5460663,lng:133.2268863,area:'sakaiminato',note:'妖怪像が並ぶ水木しげるゆかりの通り。地点は通りの代表位置。',url:'https://mapfan.com/spots/SCYH3%2CJ%2CV0',verified:false,relatedTypes:['literature']},
@@ -137,9 +137,15 @@ function matches(p){
 function filtered(){
  const bounds=state.map?.getBounds();
  const center=state.map?.getCenter()||state.center;
- return state.places.filter(p=>matches(p)&&
-  (p.lat==null||p.lng==null||!bounds?.isValid()||bounds.contains([p.lat,p.lng])))
-  .sort((a,b)=>meters(center,a)-meters(center,b)).slice(0,70)
+ const visible=state.places.filter(p=>matches(p)&&
+  (p.lat==null||p.lng==null||!bounds?.isValid()||bounds.contains([p.lat,p.lng])));
+ const coords=visible.filter(p=>p.lat!=null&&p.lng!=null)
+  .sort((a,b)=>meters(center,a)-meters(center,b));
+ const references=visible.filter(p=>p.lat==null||p.lng==null)
+  .sort((a,b)=>Number(b.source==='official-tourism')-Number(a.source==='official-tourism'));
+ // Avoid a dense API result hiding every official, unlocated cultural place.
+ return [...coords.slice(0,state.filter==='all'?55:50),
+         ...references.slice(0,state.filter==='all'?15:20)]
 }
 function updateSearchHereButton(){
  const m=state.map,btn=$('searchHereBtn');
@@ -160,7 +166,7 @@ function searchVisibleMap(){
  fetchPlaces(q)
 }
 function badgeHTML(label,kind){return '<span class="badge badge-'+kind+'">'+q(label)+'</span>'}
-function positionBadge(p){return p.lat==null||p.lng==null?(p.address?'住所のみ':'位置なし'):p.verified===false?'概略位置':p.source==='tottori-city-poi'?'公式座標':'位置あり'}
+function positionBadge(p){return p.lat==null||p.lng==null?(p.source==='official-tourism'?'所在地資料のみ':p.address?'住所のみ':'位置なし'):p.verified===false?'概略位置':p.source==='tottori-city-poi'?'公式座標':'位置あり'}
 function badgesFor(p,row){
  const parts=[badgeHTML((TYPES[effectiveType(p)]||TYPES.other)[1],'type')];
  if(p.relatedTypes?.includes('people'))parts.push(badgeHTML('偉人','type'));
@@ -481,8 +487,8 @@ function openDetail(p){
  $('detailMeta').textContent=[where(p),prettyDist(p)].filter(Boolean).join(' · ');
  $('detailNote').textContent=p.note||'気になったら、旅帖に残しておきましょう。';
  const curated=String(p.id||'').startsWith('culture:')||String(p.id||'').startsWith('night:')||p.source==='curated';
- const sourceLabel=p.source==='tottori-city-poi'?'鳥取市オープンデータ':p.source==='guide'?'観光・施設資料':curated||p.source==='reference'?'公開資料':'OpenPOI API';
- const sourceURL=p.source==='tottori-city-poi'?HOSAI_DATASET:curated||p.source==='reference'||p.source==='guide'?p.url:null;
+ const sourceLabel=p.source==='tottori-city-poi'?'鳥取市オープンデータ':p.source==='official-tourism'?'とっとり旅（公式）':p.source==='guide'?'観光・施設資料':curated||p.source==='reference'?'公開資料':'OpenPOI API';
+ const sourceURL=p.source==='tottori-city-poi'?HOSAI_DATASET:curated||p.source==='reference'||p.source==='guide'||p.source==='official-tourism'?p.url:null;
  const safeSource=sourceURL&&/^https:\/\//.test(sourceURL)?'<a class="detail-source" href="'+q(sourceURL)+'" target="_blank" rel="noopener noreferrer">'+sourceLabel+' ↗</a>':'<small class="detail-source">'+sourceLabel+'</small>';
  $('detailTags').innerHTML=badgesFor(p,row)+safeSource+(p.verified===false?'<small class="detail-source">参考地点・自動すれ違い対象外</small>':'');
  $('viewOnMapBtn').disabled=p.lat==null||p.lng==null;
@@ -510,7 +516,7 @@ function chooseFilter(f){
  if(!state.results.length||!state.lastFetch)fetchPlaces();
  else renderList()
 }
-function resetArea(){const a=AREAS[$('area').value];state.area=$('area').value;state.center={lat:a.lat,lng:a.lng};state.gps=null;state.query='';$('search').value='';state.lastQuery='';updateMap();fetchPlaces()}
+function resetArea(){const a=AREAS[$('area').value];state.area=$('area').value;state.center={lat:a.lat,lng:a.lng};state.gps=null;status(a.name+'の地図 · 現在地未取得');state.query='';$('search').value='';state.lastQuery='';updateMap();fetchPlaces()}
 function doSearch(ev){ev.preventDefault();state.query=$('search').value.trim();if(state.query){state.filter='all';for(const b of document.querySelectorAll('[data-filter]')){b.classList.toggle('active',b.dataset.filter==='all');b.setAttribute('aria-pressed',String(b.dataset.filter==='all'))}const query=state.query;state.query='';fetchPlaces(query).then(()=>{state.query='';renderList()})}else fetchPlaces()}
 function dataRows(category='all'){return Object.values(state.journal).filter(v=>v&&v.place&&(category==='all'||effectiveType(v.place)===category||v.place.relatedTypes?.includes(category))).sort((a,b)=>new Date(a.seenAt||a.nearAt||a.visitedAt||0)-new Date(b.seenAt||b.nearAt||b.visitedAt||0))}
 function stamp(d){if(!d)return '';const v=new Date(d);return Number.isNaN(v.getTime())?'':new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(v)}
