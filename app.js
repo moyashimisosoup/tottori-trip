@@ -300,14 +300,20 @@ function focusSearchResults({silent=false}={}){
 }
 // GSI place-name and address lookup. User-submit only: never auto-geocode keystrokes.
 // We intentionally do not use OSMF's public Nominatim as a generic app geocoder.
+function addressMatchText(value){
+ // A locality can be written as 二丁目 or 2丁目; preserve place-name kanji.
+ const digits={一:'1',二:'2',三:'3',四:'4',五:'5',六:'6',七:'7',八:'8',九:'9',十:'10'};
+ return normalizedSearch(value).replace(/^鳥取県/,'')
+  .replace(/[一二三四五六七八九十](?=丁目)/g,ch=>digits[ch]);
+}
 function parseGsiCandidates(features,keyword){
  if(!Array.isArray(features))return [];
- const needle=normalizedSearch(keyword).replace(/^鳥取県/,'');
+ const needle=addressMatchText(keyword);
  return features.map(row=>{
   const coords=row?.geometry?.coordinates,title=String(row?.properties?.title||'');
   const lng=Number(coords?.[0]),lat=Number(coords?.[1]);
   if(!Number.isFinite(lat)||!Number.isFinite(lng)||!isTottori({lat,lng}))return null;
-  const label=normalizedSearch(title).replace(/^鳥取県/,'');
+  const label=addressMatchText(title);
   if(!label||!(label.includes(needle)||needle.includes(label)))return null;
   const rank=label===needle?0:label.startsWith(needle)?1:label.includes(needle)?2:3;
   return {lat,lng,title,rank,source:'gsi',query:keyword}
