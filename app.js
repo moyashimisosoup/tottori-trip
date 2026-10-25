@@ -12,12 +12,12 @@ const AREAS={
 // Locations without reliable map pins deliberately have no coordinates.
 const GUIDES=[
  {name:'鳥取砂丘',type:'sight',lat:35.5407,lng:134.2313,area:'tottori',note:'砂の丘が連なる鳥取を代表する風景。',url:'https://www.tottori-guide.jp/',verified:false},
- {name:'白兎神社',type:'history',lat:35.5231,lng:134.1149,area:'tottori',note:'因幡の白うさぎの神話にゆかりのある神社。',url:'https://www.torican.jp/en/spot/detail_1003.html',verified:false},
+ {name:'白兎神社',type:'temple',lat:35.5231,lng:134.1149,area:'tottori',note:'因幡の白うさぎの神話にゆかりのある神社。',url:'https://www.torican.jp/en/spot/detail_1003.html',verified:false},
  {name:'鳥取城跡',type:'history',lat:35.5117,lng:134.2406,area:'tottori',note:'久松山の麓に残る鳥取城の史跡。',url:'https://www.tottori-guide.jp/',verified:false},
  {name:'仁風閣',type:'history',lat:35.5103,lng:134.2387,area:'tottori',note:'鳥取城跡の近くにある洋風建築。',url:'https://www.pref.tottori.lg.jp/260655.htm',verified:false},
  {name:'尾崎放哉の句碑',type:'literature',lat:null,lng:null,area:'tottori',address:'鳥取市立川町1丁目',note:'自由律俳句の俳人、尾崎放哉の句碑。',url:'https://www.pref.tottori.lg.jp/dd.aspx?menuid=73376',verified:false},
  {name:'尾崎放哉生誕の地',type:'people',lat:null,lng:null,area:'tottori',address:'鳥取市吉方町2丁目',note:'鳥取出身の俳人、尾崎放哉の生誕地。',url:'https://www.pref.tottori.lg.jp/dd.aspx?menuid=73376',verified:false},
- {name:'倉吉白壁土蔵群',type:'history',lat:35.4333,lng:133.8249,area:'kurayoshi',note:'白壁の土蔵が並ぶ歴史的な町並み。',url:'https://www.tottori-guide.jp/',verified:false},
+ {name:'倉吉白壁土蔵群',type:'sight',lat:35.4333,lng:133.8249,area:'kurayoshi',note:'白壁の土蔵が並ぶ歴史的な町並み。',url:'https://www.tottori-guide.jp/',verified:false},
  {name:'三朝温泉',type:'sight',lat:35.4083,lng:133.8941,area:'kurayoshi',note:'三徳川沿いに広がる温泉街。',url:'https://www.tottori-guide.jp/',verified:false},
  {name:'青山剛昌ふるさと館',type:'people',lat:35.4980281,lng:133.7618124,area:'kurayoshi',note:'漫画家・青山剛昌の記念館。2027年の移転計画あり。',url:'https://www.gamf.jp/42.html',verified:true,relatedTypes:['literature']},
  {name:'水木しげるロード',type:'people',lat:35.5460663,lng:133.2268863,area:'sakaiminato',note:'妖怪像が並ぶ水木しげるゆかりの通り。地点は通りの代表位置。',url:'https://mapfan.com/spots/SCYH3%2CJ%2CV0',verified:false,relatedTypes:['literature']},
@@ -50,16 +50,8 @@ const CULTURE_SPOTS=[
  {name:'尾崎翠資料館 ゆかむりギャラリー',lat:null,lng:null,address:'岩美郡岩美町岩井546',area:'tottori',type:'literature',relatedTypes:['people'],note:'作家・尾崎翠の資料館。公開住所のみ確認済み。',url:'https://www.torican.jp/spot/detail_1447.html',source:'reference',verified:false},
  {name:'谷口ジロー『父の暦』ゆかりの鳥取',lat:null,lng:null,address:'鳥取市内（作品の舞台）',area:'tottori',type:'literature',relatedTypes:['people'],note:'鳥取市が舞台の作品。固定の訪問地点を指定できないため参考情報。',url:'https://www.pref.tottori.lg.jp/291428.htm',source:'reference',verified:false}
 ].map((p,i)=>({...p,id:'culture:'+i,verified:p.verified!==false,category:p.type,licenses:[],attributions:[p.url]}));
-const NIGHT_VENUES=[
- {name:'club PASHA',lat:35.4948162,lng:134.2296148,address:'鳥取市末広温泉町758 第二小熊ビル2F',area:'tottori',note:'キャバクラ。営業情報は店の公式サイトで確認。',url:'https://www.risouzu.com/'},
- {name:'PREMIUM PASHA CLUB',lat:35.4950245,lng:134.2294983,address:'鳥取市末広温泉町752-2 第一末広ビル',area:'tottori',note:'キャバクラ。営業情報は店の公式サイトで確認。',url:'https://www.risouzu.com/'},
- {name:'PINKY（ピンキー）',address:'鳥取市末広温泉町355-2 レインボービル6F',area:'tottori',note:'スナック。性風俗店ではなく夜の飲食店。',url:'https://town-night.jp/tottori/a_1176/shop/013315/map/'},
- {name:'club M',address:'米子市皆生温泉3丁目6-18',area:'yonago',note:'ソープランド。公開住所のみ確認済み。',url:'https://www.f-terminal.jp/tottori.html'},
- {name:'ソウルシャドウ',address:'米子市皆生温泉3丁目6-21',area:'yonago',note:'ソープランド。公開住所のみ確認済み。',url:'https://www.f-terminal.jp/tottori.html'}
-].map((p,i)=>({...p,id:'night:'+i,type:'adult',lat:p.lat??null,lng:p.lng??null,verified:p.lat!=null&&p.lng!=null,source:p.lat!=null?'curated':'reference',category:'adult',licenses:[],attributions:p.lat!=null?[p.url,'MapFan 公開施設地点']: [p.url]}));
-
 const $=id=>document.getElementById(id);
-const TYPES={sight:['✦','名所'],history:['▥','史跡'],literature:['本','文学'],people:['★','偉人'],food:['食','飲食'],adult:['夜','風俗'],other:['・','施設']};
+const TYPES={sight:['✦','名所'],history:['▥','史跡'],temple:['社','寺社'],literature:['本','文学'],people:['★','偉人'],food:['食','飲食'],other:['・','施設']};
 const q=(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const initial=()=>{
  try{
@@ -67,54 +59,71 @@ const initial=()=>{
   if(!obj||typeof obj!=='object'||Array.isArray(obj))return {};
   // Repair earlier misclassified post offices without changing saved visit times.
   for(const row of Object.values(obj)){
-   if(row?.place?.type==='history'&&/郵便局|郵便ポスト/.test(row.place.name||''))
-    row.place.type='other';
+   if(row?.place?.type==='history'&&/郵便局|郵便ポスト/.test(row.place.name||''))row.place.type='other';
+   if(row?.place?.type==='history'&&classify({...row.place,type:null})==='temple')row.place.type='temple';
   }
   return obj
  }catch{return {}}
 };
-const state={area:'tottori',center:AREAS.tottori,filter:'all',query:'',places:[],results:[],journal:initial(),tab:'places',journalFilter:'all',selected:null,map:null,markers:null,gps:null,watch:null,tracking:false,adultOK:false,lastFetch:0,lastLoc:null,toastTimer:0,loading:false};
+const state={area:'tottori',center:AREAS.tottori,filter:'all',query:'',places:[],results:[],journal:initial(),tab:'places',journalFilter:'all',selected:null,map:null,markers:null,gps:null,watch:null,tracking:false,lastFetch:0,lastLoc:null,toastTimer:0,loading:false};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state.journal))}catch{toast('保存できません。空き容量をご確認ください')}}
 function idOf(p){return p.id||'poi:'+([p.source||'',p.name||'',Number(p.lat).toFixed(5),Number(p.lng).toFixed(5)].join('|'))}
 function normalize(raw){if(!raw||!raw.name)return null;const lat=raw.lat===''||raw.lat==null?null:Number(raw.lat);const lng=raw.lng===''||raw.lng==null?null:Number(raw.lng);if(lat!==null&&(!Number.isFinite(lat)||lat < -90||lat>90))return null;if(lng!==null&&(!Number.isFinite(lng)||lng< -180||lng>180))return null;
  const p={name:String(raw.name).slice(0,130),lat,lng,address:String(raw.address||'').slice(0,180),category:String(raw.category||'unknown'),source:String(raw.source||'openpoi'),attributions:Array.isArray(raw.attributions)?raw.attributions.slice(0,15):[],licenses:Array.isArray(raw.licenses)?raw.licenses.slice(0,15):[],verified:true};p.id=idOf(p);p.type=classify(p);return p}
+function isNightlifeName(name){
+ return /ソープランド|ファッションヘルス|デリヘル|ホテヘル|ピンクサロン|キャバクラ|ホストクラブ|風俗店|メンズエステ|コンカフェ/.test(String(name||''))
+}
 function classify(p){
- if(p.type)return p.type;
+ if(p.type)return p.type==='adult'?'other':p.type;
  const n=String(p.name||'');
- // Compound names such as 円通寺簡易郵便局 must not become temples.
  if(/郵便局|郵便ポスト|〒|ゆうちょ|学校|保育園|幼稚園|交番|駐在所|市役所|役場|公民館/.test(n))return 'other';
- if(/ソープランド|ファッションヘルス|デリヘル|ホテヘル|ピンクサロン|キャバクラ|ホストクラブ|風俗店/.test(n))return 'adult';
- if(/スナック|ラウンジ|クラブ|CLUB|club|コンカフェ/.test(n)&&
-   ['bar_izakaya','retail_other','service_other','unknown'].includes(p.category))return 'adult';
+ if(isNightlifeName(n))return 'other';
+ if(/廃寺跡|寺院跡|旧寺跡/.test(n))return 'history';
+ if(/神社|神宮|大社|神祠|観音堂|寺院|寺$|寺（|寺\(|投入堂|岩屋堂|仏閣/.test(n))return 'temple';
  if(/放哉|文学|文芸|歌碑|句碑|詩碑|小説|万葉|図書館/.test(n))return 'literature';
  if(/生誕|記念館|水木しげる|青山剛昌/.test(n))return 'people';
- if(/城跡|古墳|遺跡|史跡|神社|神宮|石碑|旧居|文化財|(^|[\s　])[^\s　]+寺$|寺院/.test(n))return 'history';
+ if(/城跡|古墳|遺跡|史跡|石碑|旧居|文化財|台場跡|国庁跡|墓所|居館跡/.test(n))return 'history';
  if(['restaurant','cafe','fast_food','bakery','bar_izakaya'].includes(p.category))return 'food';
- if(p.category==='tourism'||/砂丘|博物館|美術館|景勝|展望|公園|温泉/.test(n))return 'sight';
+ if(/砂丘|海岸|海水浴場|渓谷|展望|公園|温泉|山岳|庭園|景勝|美術館|博物館|花回廊|街並|土蔵群|宿場町/.test(n))return 'sight';
  return 'other'
+}
+function effectiveType(p){
+ const original=p.type==='adult'?'other':p.type;
+ if(original==='history'&&classify({...p,type:null})==='temple')return 'temple';
+ return original||'other'
 }
 function rad(n){return n*Math.PI/180}
 function meters(a,b){if(!a||!b||a.lat==null||a.lng==null||b.lat==null||b.lng==null)return Infinity;const dLat=rad(b.lat-a.lat),dLng=rad(b.lng-a.lng),v=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLng/2)**2;return 6371000*2*Math.atan2(Math.sqrt(v),Math.sqrt(Math.max(0,1-v)))}
 function prettyDist(p){let n=meters(state.gps||state.center,p);if(!Number.isFinite(n))return '参考地点';return `${p.source==='guide'?'約':''}${n<1000?Math.round(n)+'m':(n/1000).toFixed(1)+'km'}`}
 function where(p){return p.address||(p.source==='guide'?(AREAS[p.area]?.name||'鳥取県'):'')}
 function toast(s){const el=$('toast');el.textContent=s;el.hidden=false;clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>el.hidden=true,3000)}
-function status(s,ok=false){$('gpsStatus').textContent=s;$('gpsDot').classList.toggle('on',ok)}
+function status(s,ok=false){$('gpsStatus').textContent=s;$('gpsDot').classList.toggle('on',ok);$('locateBtn').setAttribute('aria-pressed',String(ok))}
 function eventFor(p,kind){const id=idOf(p);let row=state.journal[id];if(!row){row={id,place:{...p},seenAt:null,nearAt:null,visitedAt:null};state.journal[id]=row}if(!row[kind+'At'])row[kind+'At']=new Date().toISOString();row.place={...p};save();$('journalCount').textContent=Object.keys(state.journal).length;return row}
 function rank(row){return row?.visitedAt?'訪れた':row?.nearAt?'すれ違った':row?.seenAt?'見つけた':''}
 function showTab(tab){state.tab=tab;const on=tab==='places';$('placesPane').hidden=!on;$('journalPane').hidden=on;$('placesTab').classList.toggle('active',on);$('journalTab').classList.toggle('active',!on);$('placesTab').setAttribute('aria-pressed',String(on));$('journalTab').setAttribute('aria-pressed',String(!on));if(!on)renderJournal();else renderList();refreshMapSize(90)}
 const LITERARY_BATCH_01=Array.isArray(window.TOTTORI_LITERARY_BATCH_01)?window.TOTTORI_LITERARY_BATCH_01:[];
+const OFFICIAL_LANDMARKS=Array.isArray(window.TOTTORI_OFFICIAL_LANDMARKS)?window.TOTTORI_OFFICIAL_LANDMARKS:[];
 function currentGuides(){
  return [
   ...GUIDES.filter(p=>p.area===state.area),
   ...CULTURE_SPOTS.filter(p=>p.area===state.area),
   ...LITERARY_BATCH_01.filter(p=>p.area===state.area),
-  ...(state.area==='tottori'?HOSAI_MONUMENTS:[]),
-  ...(state.adultOK&&state.filter==='adult'?NIGHT_VENUES.filter(p=>p.area===state.area):[])
+  ...OFFICIAL_LANDMARKS.filter(p=>p.area===state.area),
+  ...(state.area==='tottori'?HOSAI_MONUMENTS:[])
  ]
 }
-function allPlaces(){const items=new Map();for(const p of [...currentGuides(),...state.results])items.set(p.id,p);return [...items.values()]}
+function allPlaces(){
+ const items=new Map();
+ for(const item of [...currentGuides(),...state.results]){
+  if(isNightlifeName(item.name))continue;
+  const nextType=effectiveType(item);
+  const p=nextType===item.type?item:{...item,type:nextType};
+  items.set(p.id,p)
+ }
+ return [...items.values()]
+}
 function matches(p){
- if(state.filter!=='all'&&p.type!==state.filter&&!p.relatedTypes?.includes(state.filter))return false;
+ if(isNightlifeName(p.name)||state.filter!=='all'&&(effectiveType(p)!==state.filter&&!p.relatedTypes?.includes(state.filter)))return false;
  const term=state.query.trim().toLocaleLowerCase();
  if(term&&!(`${p.name} ${p.address||''} ${p.note||''}`).toLocaleLowerCase().includes(term))return false;
  // Region centers only decide whether an unlocated reference should appear
@@ -128,9 +137,15 @@ function matches(p){
 function filtered(){
  const bounds=state.map?.getBounds();
  const center=state.map?.getCenter()||state.center;
- return state.places.filter(p=>matches(p)&&
-  (p.lat==null||p.lng==null||!bounds?.isValid()||bounds.contains([p.lat,p.lng])))
-  .sort((a,b)=>meters(center,a)-meters(center,b)).slice(0,70)
+ const visible=state.places.filter(p=>matches(p)&&
+  (p.lat==null||p.lng==null||!bounds?.isValid()||bounds.contains([p.lat,p.lng])));
+ const coords=visible.filter(p=>p.lat!=null&&p.lng!=null)
+  .sort((a,b)=>meters(center,a)-meters(center,b));
+ const references=visible.filter(p=>p.lat==null||p.lng==null)
+  .sort((a,b)=>Number(b.source==='official-tourism')-Number(a.source==='official-tourism'));
+ // Avoid a dense API result hiding every official, unlocated cultural place.
+ return [...coords.slice(0,state.filter==='all'?55:50),
+         ...references.slice(0,state.filter==='all'?15:20)]
 }
 function updateSearchHereButton(){
  const m=state.map,btn=$('searchHereBtn');
@@ -147,16 +162,16 @@ function searchVisibleMap(){
   state.area=nearest;$('area').value=nearest;
  }
  $('searchHereBtn').hidden=true;
- const q=state.filter==='adult'?'風俗 ソープ キャバクラ ホストクラブ':$('search').value.trim();
+ const q=$('search').value.trim();
  fetchPlaces(q)
 }
 function badgeHTML(label,kind){return '<span class="badge badge-'+kind+'">'+q(label)+'</span>'}
-function positionBadge(p){return p.lat==null||p.lng==null?(p.address?'住所のみ':'位置なし'):p.verified===false?'概略位置':p.source==='tottori-city-poi'?'公式座標':'位置あり'}
+function positionBadge(p){return p.lat==null||p.lng==null?(p.source==='official-tourism'?'所在地資料のみ':p.address?'住所のみ':'位置なし'):p.verified===false?'概略位置':p.source==='tottori-city-poi'?'公式座標':'位置あり'}
 function badgesFor(p,row){
- const parts=[badgeHTML((TYPES[p.type]||TYPES.other)[1],'type')];
+ const parts=[badgeHTML((TYPES[effectiveType(p)]||TYPES.other)[1],'type')];
  if(p.relatedTypes?.includes('people'))parts.push(badgeHTML('偉人','type'));
  const pos=positionBadge(p);
- parts.push(badgeHTML(pos,p.source==='guide'?'reference':'geo'));
+ parts.push(badgeHTML(pos,p.verified===false||p.lat==null||p.lng==null?'reference':'geo'));
  if(row?.visitedAt)parts.push(badgeHTML('訪問済','visited'));
  else if(row?.nearAt)parts.push(badgeHTML('すれ違い','near'));
  else if(row?.seenAt)parts.push(badgeHTML('発見','seen'));
@@ -189,7 +204,7 @@ function iconKind(p){
  if(p.type==='people')return 'bust';
  if(p.type==='literature')return 'scroll';
  if(p.type==='food')return 'food';
- if(p.type==='adult')return 'night';
+ if(effectiveType(p)==='temple')return 'temple';
  if(p.type==='sight'&&/森|公園|山|砂丘|自然/.test(n))return 'tree';
  if(p.type==='history')return 'museum';
  return 'building'
@@ -205,7 +220,7 @@ function renderJournal(){
  const all=Object.values(state.journal).filter(row=>row&&row.place);
  const selection=state.journalFilter;
  const rows=all.filter(row=>selection==='all'||
-  row.place.type===selection||row.place.relatedTypes?.includes(selection))
+  effectiveType(row.place)===selection||row.place.relatedTypes?.includes(selection))
   .sort((a,b)=>new Date(b.visitedAt||b.nearAt||b.seenAt||0)-new Date(a.visitedAt||a.nearAt||a.seenAt||0));
  $('journalCount').textContent=all.length;
  $('journalShownCount').textContent=rows.length+'件';
@@ -218,7 +233,7 @@ function renderJournal(){
    textContent:all.length?'このジャンルの記録はまだありません。':'旅の記録はまだありません。'})]));
 }
 function setJournalFilter(category){
- state.journalFilter=['all','sight','history','literature','people','food','adult','other'].includes(category)?category:'all';
+ state.journalFilter=['all','sight','history','temple','literature','people','food','other'].includes(category)?category:'all';
  renderJournal()
 }
 function markerCategory(p){
@@ -226,7 +241,7 @@ function markerCategory(p){
  // filter is active; otherwise it keeps its primary category in "all".
  if(state.filter!=='all'&&(p.type===state.filter||p.relatedTypes?.includes(state.filter)))
   return state.filter;
- return TYPES[p.type]?p.type:'other'
+ return TYPES[effectiveType(p)]?effectiveType(p):'other'
 }
 function drawMarkers(list){
  if(!state.map||!window.L)return;
@@ -464,16 +479,16 @@ async function fetchPlaces(extra=''){
   state.lastSearchedCenter={lat:center.lat,lng:center.lng};
   state.lastSearchedZoom=state.map?.getZoom()??16;
   updateSearchHereButton();
-  if(extra)qs.set('q',extra);const controller=new AbortController();const tm=setTimeout(()=>controller.abort(),11000);let response;try{response=await fetch(`${API}?${qs}`,{signal:controller.signal})}finally{clearTimeout(tm)}if(!response.ok)throw new Error('HTTP '+response.status);const json=await response.json();if(seq!==reqSeq)return;state.results=(Array.isArray(json.results)?json.results:[]).map(normalize).filter(Boolean).filter(p=>state.adultOK||p.type!=='adult');if(extra==='風俗 ソープ キャバクラ ホストクラブ')state.results=state.results.filter(p=>p.type==='adult');state.lastFetch=Date.now();}catch(err){if(seq!==reqSeq)return;state.results=[];$('message').textContent='施設データが読み込めません。参考スポットのみ表示します。';console.warn('OpenPOI search unavailable',err)}finally{if(seq===reqSeq){state.loading=false;renderList();updateSearchHereButton();checkNear()}}}
+  if(extra)qs.set('q',extra);const controller=new AbortController();const tm=setTimeout(()=>controller.abort(),11000);let response;try{response=await fetch(`${API}?${qs}`,{signal:controller.signal})}finally{clearTimeout(tm)}if(!response.ok)throw new Error('HTTP '+response.status);const json=await response.json();if(seq!==reqSeq)return;state.results=(Array.isArray(json.results)?json.results:[]).map(normalize).filter(Boolean).filter(p=>!isNightlifeName(p.name));state.lastFetch=Date.now();}catch(err){if(seq!==reqSeq)return;state.results=[];$('message').textContent='施設データが読み込めません。参考スポットのみ表示します。';console.warn('OpenPOI search unavailable',err)}finally{if(seq===reqSeq){state.loading=false;renderList();updateSearchHereButton();checkNear()}}}
 function openDetail(p){
  state.selected=p;const row=eventFor(p,'seen');
- $('detailType').textContent=(TYPES[p.type]||TYPES.other)[1];
+ $('detailType').textContent=(TYPES[effectiveType(p)]||TYPES.other)[1];
  $('detailName').textContent=p.name;
  $('detailMeta').textContent=[where(p),prettyDist(p)].filter(Boolean).join(' · ');
  $('detailNote').textContent=p.note||'気になったら、旅帖に残しておきましょう。';
  const curated=String(p.id||'').startsWith('culture:')||String(p.id||'').startsWith('night:')||p.source==='curated';
- const sourceLabel=p.source==='tottori-city-poi'?'鳥取市オープンデータ':p.source==='guide'?'観光・施設資料':curated||p.source==='reference'?'公開資料':'OpenPOI API';
- const sourceURL=p.source==='tottori-city-poi'?HOSAI_DATASET:curated||p.source==='reference'||p.source==='guide'?p.url:null;
+ const sourceLabel=p.source==='tottori-city-poi'?'鳥取市オープンデータ':p.source==='official-tourism'?'とっとり旅（公式）':p.source==='guide'?'観光・施設資料':curated||p.source==='reference'?'公開資料':'OpenPOI API';
+ const sourceURL=p.source==='tottori-city-poi'?HOSAI_DATASET:curated||p.source==='reference'||p.source==='guide'||p.source==='official-tourism'?p.url:null;
  const safeSource=sourceURL&&/^https:\/\//.test(sourceURL)?'<a class="detail-source" href="'+q(sourceURL)+'" target="_blank" rel="noopener noreferrer">'+sourceLabel+' ↗</a>':'<small class="detail-source">'+sourceLabel+'</small>';
  $('detailTags').innerHTML=badgesFor(p,row)+safeSource+(p.verified===false?'<small class="detail-source">参考地点・自動すれ違い対象外</small>':'');
  $('viewOnMapBtn').disabled=p.lat==null||p.lng==null;
@@ -486,14 +501,24 @@ function openDetail(p){
 function recordClick(kind){const p=state.selected;if(!p)return;eventFor(p,kind);toast(kind==='visited'?'訪問を旅帖に追加しました':'すれ違いを記録しました');$('detail').close();renderList();if(state.tab==='journal')renderJournal()}
 function isTottori(p){return p.lat>=35.0&&p.lat<=35.65&&p.lng>=133.11&&p.lng<=134.58}
 function locationFailure(err){status(err?.code===1?'位置情報が拒否されました':'現在地を取得できません');toast('位置情報の設定をご確認ください')}
-function onLocation(pos,recenter){const p={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:pos.coords.accuracy};state.gps=p;const inPref=isTottori(p);status(inPref?`現在地を取得 · 精度 約${Math.round(p.accuracy)}m`:'鳥取県外 · 鳥取のスポットを表示',inPref);if(recenter){if(!inPref){toast('現在地は鳥取県外です。鳥取のエリアを表示します');renderList();return}state.center={lat:p.lat,lng:p.lng};const ks=Object.keys(AREAS);state.area=ks.reduce((a,b)=>meters(p,AREAS[b])<meters(p,AREAS[a])?b:a);$('area').value=state.area;updateMap();fetchPlaces()}else{drawMarkers(filtered());if(!inPref)return;checkNear();if(state.tracking&&(!state.lastLoc||meters(p,state.lastLoc)>300)&&Date.now()-state.lastFetch>60000){state.center={lat:p.lat,lng:p.lng};state.lastLoc=p;updateMap();fetchPlaces()}}}
+function onLocation(pos,recenter){const p={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:pos.coords.accuracy};const inPref=isTottori(p);state.gps=inPref?p:null;status(inPref?`現在地を取得 · 精度 約${Math.round(p.accuracy)}m`:'鳥取県外 · 鳥取のスポットを表示',inPref);if(recenter){if(!inPref){toast('現在地は鳥取県外です。鳥取のエリアを表示します');renderList();return}state.center={lat:p.lat,lng:p.lng};const ks=Object.keys(AREAS);state.area=ks.reduce((a,b)=>meters(p,AREAS[b])<meters(p,AREAS[a])?b:a);$('area').value=state.area;updateMap();fetchPlaces()}else{drawMarkers(filtered());if(!inPref)return;checkNear();if(state.tracking&&(!state.lastLoc||meters(p,state.lastLoc)>300)&&Date.now()-state.lastFetch>60000){state.center={lat:p.lat,lng:p.lng};state.lastLoc=p;updateMap();fetchPlaces()}}}
 function locate(){if(!navigator.geolocation){toast('この端末では現在地を取得できません');return}status('現在地を確認中…');navigator.geolocation.getCurrentPosition(p=>onLocation(p,true),locationFailure,{enableHighAccuracy:true,timeout:12000,maximumAge:15000})}
 function checkNear(){if(!state.tracking||!state.gps||state.gps.accuracy>80)return;let found=0;for(const p of [...state.results,...currentGuides().filter(g=>g.verified===true&&g.type!=='adult')]){if(p.verified===false||p.lat==null||p.lng==null)continue;const d=meters(state.gps,p);if(d<=160&&!state.journal[p.id]?.nearAt){eventFor(p,'near');found++}}if(found){toast(`${found}か所とすれ違いました`);renderList();if(state.tab==='journal')renderJournal()}}
 function toggleTracking(){if(state.tracking){navigator.geolocation.clearWatch(state.watch);state.watch=null;state.tracking=false;$('trackBtn').textContent='◇ すれ違い OFF';$('trackBtn').setAttribute('aria-pressed','false');return}if(!navigator.geolocation){toast('位置情報が使えません');return}state.tracking=true;$('trackBtn').textContent='◆ すれ違い ON';$('trackBtn').setAttribute('aria-pressed','true');state.watch=navigator.geolocation.watchPosition(p=>onLocation(p,false),err=>{locationFailure(err);toggleTracking()},{enableHighAccuracy:true,maximumAge:10000,timeout:20000})}
-function chooseFilter(f){if(f==='adult'&&!state.adultOK){$('adultDialog').showModal();return}state.filter=f;for(const btn of document.querySelectorAll('[data-filter]')){const on=btn.dataset.filter===f;btn.classList.toggle('active',on);btn.setAttribute('aria-pressed',String(on))}if(f==='adult'){fetchPlaces('風俗 ソープ キャバクラ ホストクラブ')}else if(state.results.length===0||state.lastFetch===0){fetchPlaces()}else if(state.lastQuery==='adult'){state.lastQuery='';fetchPlaces()}else renderList();if(f==='adult')state.lastQuery='adult'}
-function resetArea(){const a=AREAS[$('area').value];state.area=$('area').value;state.center={lat:a.lat,lng:a.lng};state.gps=null;state.query='';$('search').value='';state.lastQuery='';updateMap();fetchPlaces(state.filter==='adult'?'風俗 ソープ キャバクラ ホストクラブ':'')}
+function chooseFilter(f){
+ if(f!=='all'&&!TYPES[f])return;
+ state.filter=f;
+ for(const b of document.querySelectorAll('[data-filter]')){
+  const on=b.dataset.filter===f;
+  b.classList.toggle('active',on);
+  b.setAttribute('aria-pressed',String(on))
+ }
+ if(!state.results.length||!state.lastFetch)fetchPlaces();
+ else renderList()
+}
+function resetArea(){const a=AREAS[$('area').value];state.area=$('area').value;state.center={lat:a.lat,lng:a.lng};state.gps=null;status(a.name+'の地図 · 現在地未取得');state.query='';$('search').value='';state.lastQuery='';updateMap();fetchPlaces()}
 function doSearch(ev){ev.preventDefault();state.query=$('search').value.trim();if(state.query){state.filter='all';for(const b of document.querySelectorAll('[data-filter]')){b.classList.toggle('active',b.dataset.filter==='all');b.setAttribute('aria-pressed',String(b.dataset.filter==='all'))}const query=state.query;state.query='';fetchPlaces(query).then(()=>{state.query='';renderList()})}else fetchPlaces()}
-function dataRows(category='all'){return Object.values(state.journal).filter(v=>v&&v.place&&(category==='all'||v.place.type===category||v.place.relatedTypes?.includes(category))).sort((a,b)=>new Date(a.seenAt||a.nearAt||a.visitedAt||0)-new Date(b.seenAt||b.nearAt||b.visitedAt||0))}
+function dataRows(category='all'){return Object.values(state.journal).filter(v=>v&&v.place&&(category==='all'||effectiveType(v.place)===category||v.place.relatedTypes?.includes(category))).sort((a,b)=>new Date(a.seenAt||a.nearAt||a.visitedAt||0)-new Date(b.seenAt||b.nearAt||b.visitedAt||0))}
 function stamp(d){if(!d)return '';const v=new Date(d);return Number.isNaN(v.getTime())?'':new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(v)}
 function download(blob,filename){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000)}
 function backup(){const payload={app:'とっとりトリップ',version:1,exportedAt:new Date().toISOString(),entries:dataRows()};download(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),'tottori-trip-backup.json');toast('バックアップを作成しました')}
@@ -503,5 +528,5 @@ function drawWrapped(ctx,text,x,y,maxWidth,lineHeight,maxLines){const chars=Arra
 function makeCanvas(){const visible=dataRows(state.journalFilter),total=visible.length,rows=visible.slice(0,60);const w=900,top=240,rowH=88,h=Math.max(480,top+Math.max(1,rows.length)*rowH+100);const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#f6f2e6';x.fillRect(0,0,w,h);x.fillStyle='#253348';x.font='bold 56px sans-serif';x.fillText('とっとりトリップ',60,100);x.font='24px sans-serif';x.fillText(new Date().toLocaleDateString('ja-JP'),62,150);x.fillText(`みつけた ${rows.filter(r=>r.seenAt).length}   すれ違い ${rows.filter(r=>r.nearAt).length}   訪れた ${rows.filter(r=>r.visitedAt).length}`,60,194);rows.forEach((r,i)=>{const y=top+i*rowH;x.fillStyle=i%2?'#f0ebdd':'#fffdf5';x.fillRect(45,y-12,w-90,rowH-4);x.fillStyle='#253348';x.font='bold 25px sans-serif';drawWrapped(x,r.place.name,60,y+23,650,26,1);x.font='20px sans-serif';x.fillStyle='#6b727b';x.fillText(`${rank(r)}  ${stamp(r.visitedAt||r.nearAt||r.seenAt)}`,62,y+56)});x.fillStyle='#253348';x.font='18px sans-serif';x.fillText(`TOTTORI TRIP  ·  OpenPOI API  ·  ${rows.length}/${total}件`,50,h-32);return c}
 async function imageExport(){try{const c=makeCanvas();const blob=await new Promise(resolve=>c.toBlob(resolve,'image/png'));if(!blob)throw Error('png');const file=new File([blob],'tottori-trip.png',{type:'image/png'});if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:'とっとりトリップ'});return}catch(err){if(err.name==='AbortError')return}}download(blob,'tottori-trip.png');toast('旅帖の画像を作成しました')}catch{toast('画像を作成できませんでした')}}
 function openGoogle(){const p=state.selected;if(p)window.open(googleMapsLink(p),'_blank','noopener')}
-function init(){mapInit();$('area').addEventListener('change',resetArea);$('locateBtn').addEventListener('click',locate);$('trackBtn').addEventListener('click',toggleTracking);$('searchForm').addEventListener('submit',doSearch);$('searchHereBtn').addEventListener('click',searchVisibleMap);document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>chooseFilter(b.dataset.filter)));$('placesTab').addEventListener('click',()=>showTab('places'));$('journalTab').addEventListener('click',()=>showTab('journal'));$('journalFilter').addEventListener('change',e=>setJournalFilter(e.target.value));$('visitBtn').addEventListener('click',()=>recordClick('visited'));$('nearBtn').addEventListener('click',()=>recordClick('near'));$('googleMapsBtn').addEventListener('click',openGoogle);$('viewOnMapBtn').addEventListener('click',viewOnMap);$('mapSourceBtn').addEventListener('click',changeMapProvider);$('mapRetryBtn').addEventListener('click',reloadMapTiles);$('mapFallbackRetryBtn').addEventListener('click',reloadMapTiles);$('infoBtn').addEventListener('click',()=>$('info').showModal());$('adultConfirm').addEventListener('click',()=>{state.adultOK=true;$('adultDialog').close();chooseFilter('adult')});$('adultCancel').addEventListener('click',()=>$('adultDialog').close());$('imageBtn').addEventListener('click',imageExport);$('printBtn').addEventListener('click',()=>{renderJournal();window.print()});$('backupBtn').addEventListener('click',backup);$('restoreFile').addEventListener('change',restore);$('journalCount').textContent=Object.keys(state.journal).length;renderList();fetchPlaces();}
+function init(){mapInit();$('area').addEventListener('change',resetArea);$('locateBtn').addEventListener('click',locate);$('trackBtn').addEventListener('click',toggleTracking);$('searchForm').addEventListener('submit',doSearch);$('searchHereBtn').addEventListener('click',searchVisibleMap);document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>chooseFilter(b.dataset.filter)));$('placesTab').addEventListener('click',()=>showTab('places'));$('journalTab').addEventListener('click',()=>showTab('journal'));$('journalFilter').addEventListener('change',e=>setJournalFilter(e.target.value));$('visitBtn').addEventListener('click',()=>recordClick('visited'));$('nearBtn').addEventListener('click',()=>recordClick('near'));$('googleMapsBtn').addEventListener('click',openGoogle);$('viewOnMapBtn').addEventListener('click',viewOnMap);$('mapSourceBtn').addEventListener('click',changeMapProvider);$('mapRetryBtn').addEventListener('click',reloadMapTiles);$('mapFallbackRetryBtn').addEventListener('click',reloadMapTiles);$('infoBtn').addEventListener('click',()=>$('info').showModal());$('imageBtn').addEventListener('click',imageExport);$('printBtn').addEventListener('click',()=>{renderJournal();window.print()});$('backupBtn').addEventListener('click',backup);$('restoreFile').addEventListener('change',restore);$('journalCount').textContent=Object.keys(state.journal).length;renderList();fetchPlaces();}
 if(document.readyState==='complete')init();else window.addEventListener('load',init,{once:true});
