@@ -65,7 +65,7 @@ const initial=()=>{
   return obj
  }catch{return {}}
 };
-const state={area:'tottori',center:AREAS.tottori,filter:'all',query:'',places:[],results:[],journal:initial(),tab:'places',journalFilter:'all',journalStatus:'all',selected:null,map:null,markers:null,gps:null,watch:null,tracking:false,lastFetch:0,lastLoc:null,toastTimer:0,loading:false,searchMapActive:false,searchOriginalView:null};
+const state={area:'tottori',center:AREAS.tottori,filter:'all',query:'',places:[],results:[],journal:initial(),tab:'places',journalFilter:'all',journalStatus:'all',selected:null,map:null,markers:null,gps:null,watch:null,tracking:false,lastFetch:0,lastLoc:null,toastTimer:0,loading:false,searchMapActive:false,searchOriginalView:null,geocodeResult:null};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state.journal))}catch{toast('保存できません。空き容量をご確認ください')}}
 function idOf(p){return p.id||'poi:'+([p.source||'',p.name||'',Number(p.lat).toFixed(5),Number(p.lng).toFixed(5)].join('|'))}
 function normalize(raw){if(!raw||!raw.name)return null;const lat=raw.lat===''||raw.lat==null?null:Number(raw.lat);const lng=raw.lng===''||raw.lng==null?null:Number(raw.lng);if(lat!==null&&(!Number.isFinite(lat)||lat < -90||lat>90))return null;if(lng!==null&&(!Number.isFinite(lng)||lng< -180||lng>180))return null;
@@ -192,6 +192,18 @@ function searchVisibleMap(){
 /** Focus the *actual geocoded search matches*; never invent a position for a reference. */
 function focusSearchResults({silent=false}={}){
  if(!state.map||!state.query.trim())return 0;
+ const single=state.geocodeResult;
+ if(single&&Number.isFinite(single.lat)&&Number.isFinite(single.lng)){
+  if(!state.searchOriginalView){
+   const center=state.map.getCenter();
+   state.searchOriginalView={lat:center.lat,lng:center.lng,zoom:state.map.getZoom()}
+  }
+  state.searchMapActive=true;
+  state.map.setView([single.lat,single.lng],16,{animate:false});
+  mapStamp();
+  refreshMapSize(80);
+  return 1
+ }
  const places=filtered().filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng));
  if(!places.length){
   if(!silent&&filtered().length)toast('座標未確認の候補は一覧に表示しています');
@@ -209,7 +221,86 @@ function focusSearchResults({silent=false}={}){
  refreshMapSize(80);
  return coords.length
 }
+// GSI place-name and address lookup. User-submit only: never auto-geocode keystrokes.
+// We intentionally do not use OSMF's public Nominatim as a generic app geocoder.
+function parseGsiCandidates(features,keyword){
+ if(!Array.isArray(features))return [];
+ const needle=normalizedSearch(keyword).replace(/^鳥取県/,'');
+ return features.map(row=>{
+  const coords=row?.geometry?.coordinates,title=String(row?.properties?.title||'');
+  const lng=Number(coords?.[0]),lat=Number(coords?.[1]);
+  if(!Number.isFinite(lat)||!Number.isFinite(lng)||!isTottori({lat,lng}))return null;
+  const label=normalizedSearch(title).replace(/^鳥取県/,'');
+  if(!label||!(label.includes(needle)||needle.includes(label)))return null;
+  const rank=label===needle?0:label.startsWith(needle)?1:label.includes(needle)?2:3;
+  return {lat,lng,title,rank,source:'gsi',query:keyword}
+ }).filter(Boolean).sort((a,b)=>a.rank-b.rank).slice(0,5)
+}
+function knownPlaceSearch(keyword){
+ const value=normalizedSearch(keyword).replace(/^jr/,'');
+ if(value==='鳥取駅')return {
+  lat:35.49422,lng:134.226085,title:'鳥取駅',
+  source:'railway',query:keyword,
+  sourceUrl:'https://postcode.teraren.com/stations/3895'
+ };
+ return null
+}
+function geocodeResultCard(p){
+ const btn=document.createElement('button');
+ btn.className='place-card geocode-card';btn.type='button';
+ // No eventFor(), save(), or openDetail(): search results are transient.
+ btn.innerHTML='<span class="symbol">⌕</span><span class="content">'+
+  '<span class="name">'+q(p.title)+'</span>'+
+  '<span class="badges"><span class="badge badge-reference">地図検索・未登録</span></span>'+
+  '<span class="minor">'+(p.source==='railway'?'駅の代表座標':'地理院検索の参考座標')+
+  '（旅帖の自動判定対象外）</span></span><span class="arrow">›</span>';
+ btn.addEventListener('click',()=>focusSearchResults({silent:true}));
+ return btn
+}
+function clearGeocode(){
+ geoReqSeq++;
+ state.geocodeResult=null
+}
+async function geocodeSubmittedKeyword(keyword){
+ const query=keyword.trim(),seq=++geoReqSeq;
+ if(!query||query!==state.query.trim())return;
+ const direct=knownPlaceSearch(query);
+ if(direct){
+  state.geocodeResult=direct;
+  renderList();
+  focusSearchResults({silent:true});
+  return
+ }
+ const oldMatch=allPlaces().some(p=>p.lat!=null&&p.lng!=null&&normalizedSearch(p.name)===normalizedSearch(query));
+ if(oldMatch)return; // Exact known point already focuses correctly.
+ try{
+  let candidates=geoCache.get(query);
+  if(!candidates){
+   const controller=new AbortController();
+   const clock=setTimeout(()=>controller.abort(),9000);
+   try{
+    const response=await fetch(GEO_SEARCH_URL+'?q='+encodeURIComponent(query),{signal:controller.signal});
+    if(!response.ok)throw Error('GSI HTTP '+response.status);
+    candidates=parseGsiCandidates(await response.json(),query);
+    geoCache.set(query,candidates)
+   }finally{clearTimeout(clock)}
+  }
+  if(seq!==geoReqSeq||query!==state.query.trim())return;
+  if(candidates.length){
+   state.geocodeResult=candidates[0];
+   renderList();
+   focusSearchResults({silent:true})
+  }else if(!filtered().length){
+   $('message').textContent='この地点は地理院検索でも見つかりませんでした。別の地名・住所でお試しください。'
+  }
+ }catch(err){
+  if(seq!==geoReqSeq||query!==state.query.trim())return;
+  console.warn('GSI place search unavailable',err);
+  if(!filtered().length)$('message').textContent='地名・住所の検索サービスに接続できません。時間をおいて再検索してください。'
+ }
+}
 function resetSearchMap(){
+ clearGeocode();
  const old=state.searchOriginalView;
  state.searchMapActive=false;
  state.searchOriginalView=null;
@@ -290,11 +381,11 @@ function pixelIcon(p){
 function fillPlaceCard(place,row){const btn=document.createElement('button');btn.className='place-card';btn.type='button';btn.dataset.id=place.id;const [,label]=TYPES[place.type]||TYPES.other;btn.innerHTML=`<span class="symbol" aria-hidden="true">${pixelIcon(place)}</span><span class="content"><span class="name">${q(place.name)}</span>${badgesFor(place,row)}<span class="minor">${q(prettyDist(place))}</span></span><span class="arrow" aria-hidden="true">›</span>`;btn.addEventListener('click',()=>openDetail(place));return btn}
 function renderList(){
  state.places=allPlaces();
- const list=filtered(),search=state.query.trim();
- $('placesCount').textContent=list.length;
- $('places').replaceChildren(...list.map(p=>fillPlaceCard(p,state.journal[p.id])));
+ const list=filtered(),search=state.query.trim(),geo=search?state.geocodeResult:null;
+ $('placesCount').textContent=list.length+(geo?1:0);
+ $('places').replaceChildren(...(geo?[geocodeResultCard(geo)]:[]),...list.map(p=>fillPlaceCard(p,state.journal[p.id])));
  if(!state.loading)$('message').textContent=search?
-  (list.length?`「${search}」の検索結果 ${list.length}件（地図外の登録地点も含む）`:
+  (list.length||geo?`「${search}」の検索結果 ${list.length+(geo?1:0)}件（地図外の登録地点・地図検索を含む）`:
    `「${search}」に一致する地点はありません。`):
   (list.length?`${list.length}か所`:'この条件の場所はありません。エリアやジャンルを変えてください。');
  drawMarkers(list)
@@ -366,6 +457,14 @@ function drawMarkers(list){
   const marker=L.marker([p.lat,p.lng],{icon});
   marker.on('click',()=>openDetail(p));
   marker.addTo(state.markers)
+ }
+ if(state.query.trim()&&state.geocodeResult){
+  // Temporary search marker. Never make a journal entry or count a GPS discovery.
+  const p=state.geocodeResult;
+  const icon=L.divIcon({className:'',html:'<div class="search-pin"><span></span></div>',
+   iconSize:[28,28],iconAnchor:[14,14]});
+  L.marker([p.lat,p.lng],{icon,zIndexOffset:1600})
+   .on('click',()=>toast(p.title+'（地図検索の参考位置）')).addTo(state.markers)
  }
  if(state.gps){
   // Current GPS position is distinct in both shape and color from all categories.
@@ -573,7 +672,9 @@ function viewOnMap(){
  refreshMapSize(160)
 }
 function updateMap(){const c=state.center;mapStamp();if(state.map){if(state.focusMarker){state.map.removeLayer(state.focusMarker);state.focusMarker=null}state.map.setView([c.lat,c.lng],16);refreshMapSize(100)}$('mapFallbackLink').href=googleMapsLink(c);$('mapNoticeLink').href=googleMapsLink(c);renderList()}
-let reqSeq=0;
+let reqSeq=0,geoReqSeq=0;
+const GEO_SEARCH_URL='https://msearch.gsi.go.jp/address-search/AddressSearch';
+const geoCache=new Map();
 async function fetchPlaces(extra=state.query,focusAfterSearch=false){
  const seq=++reqSeq;
  state.loading=true;
@@ -626,17 +727,19 @@ function chooseFilter(f){
  if(!state.results.length||!state.lastFetch)fetchPlaces();
  else renderList()
 }
-function resetArea(){const a=AREAS[$('area').value];state.area=$('area').value;state.center={lat:a.lat,lng:a.lng};state.gps=null;status(a.name+'の地図 · 現在地未取得');state.query='';$('search').value='';state.lastQuery='';state.searchMapActive=false;state.searchOriginalView=null;updateMap();fetchPlaces()}
+function resetArea(){const a=AREAS[$('area').value];state.area=$('area').value;state.center={lat:a.lat,lng:a.lng};state.gps=null;status(a.name+'の地図 · 現在地未取得');state.query='';$('search').value='';state.lastQuery='';state.searchMapActive=false;state.searchOriginalView=null;clearGeocode();updateMap();fetchPlaces()}
 function onSearchInput(){
  const previous=state.query;
  state.query=$('search').value.trim();
  if(previous&&!state.query)resetSearchMap(); // Return to the map location before search.
+ else if(previous!==state.query)clearGeocode();
  renderList(); // Local and curated results respond immediately, including during IME entry.
  if(previous&&!state.query)fetchPlaces(''); // Clearing the search restores nearby API data.
 }
 function doSearch(ev){
  ev.preventDefault();
  state.query=$('search').value.trim(); // Keep the query until cleared by the user.
+ clearGeocode(); // Only current submitted search can have a temporary address pin.
  if(state.query){
   state.filter='all';
   for(const b of document.querySelectorAll('[data-filter]')){
@@ -653,7 +756,8 @@ function doSearch(ev){
  // When API results arrive, extend the map view to their geocoded matches.
  fetchPlaces(state.query,!!state.query);
  if(state.query){
-  focusSearchResults();
+  focusSearchResults({silent:true});
+  geocodeSubmittedKeyword(state.query);
   document.querySelector('.map-wrap').scrollIntoView({behavior:'smooth',block:'center'});
  }else{
   resetSearchMap();
