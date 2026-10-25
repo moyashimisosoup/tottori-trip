@@ -102,9 +102,29 @@ function status(s,ok=false){$('gpsStatus').textContent=s;$('gpsDot').classList.t
 function eventFor(p,kind){const id=idOf(p);let row=state.journal[id];if(!row){row={id,place:{...p},seenAt:null,nearAt:null,visitedAt:null};state.journal[id]=row}if(!row[kind+'At'])row[kind+'At']=new Date().toISOString();row.place={...p};save();$('journalCount').textContent=Object.keys(state.journal).length;return row}
 function rank(row){return row?.visitedAt?'訪れた':row?.nearAt?'すれ違った':row?.seenAt?'見つけた':''}
 function showTab(tab){state.tab=tab;const on=tab==='places';$('placesPane').hidden=!on;$('journalPane').hidden=on;$('placesTab').classList.toggle('active',on);$('journalTab').classList.toggle('active',!on);$('placesTab').setAttribute('aria-pressed',String(on));$('journalTab').setAttribute('aria-pressed',String(!on));if(!on)renderJournal();else renderList();refreshMapSize(90)}
-function currentGuides(){return [...GUIDES.filter(p=>p.area===state.area),...CULTURE_SPOTS.filter(p=>p.area===state.area),...(state.area==='tottori'?HOSAI_MONUMENTS:[]),...(state.adultOK&&state.filter==='adult'?NIGHT_VENUES.filter(p=>p.area===state.area):[])]}
+const LITERARY_BATCH_01=Array.isArray(window.TOTTORI_LITERARY_BATCH_01)?window.TOTTORI_LITERARY_BATCH_01:[];
+function currentGuides(){
+ return [
+  ...GUIDES.filter(p=>p.area===state.area),
+  ...CULTURE_SPOTS.filter(p=>p.area===state.area),
+  ...LITERARY_BATCH_01.filter(p=>p.area===state.area),
+  ...(state.area==='tottori'?HOSAI_MONUMENTS:[]),
+  ...(state.adultOK&&state.filter==='adult'?NIGHT_VENUES.filter(p=>p.area===state.area):[])
+ ]
+}
 function allPlaces(){const items=new Map();for(const p of [...currentGuides(),...state.results])items.set(p.id,p);return [...items.values()]}
-function matches(p){if(state.filter!=='all'&&p.type!==state.filter&&!p.relatedTypes?.includes(state.filter))return false;const term=state.query.trim().toLocaleLowerCase();if(term&&!`${p.name} ${p.address||''} ${p.note||''}`.toLocaleLowerCase().includes(term))return false;return true}
+function matches(p){
+ if(state.filter!=='all'&&p.type!==state.filter&&!p.relatedTypes?.includes(state.filter))return false;
+ const term=state.query.trim().toLocaleLowerCase();
+ if(term&&!(`${p.name} ${p.address||''} ${p.note||''}`).toLocaleLowerCase().includes(term))return false;
+ // Region centers only decide whether an unlocated reference should appear
+ // in the nearby list. They are NOT map pins or GPS proximity evidence.
+ if(p.referenceArea&&!term){
+  const c=state.map?.getCenter()||state.center;
+  if(meters(c,p.referenceArea)>(p.referenceArea.radius||6000))return false;
+ }
+ return true
+}
 function filtered(){
  const bounds=state.map?.getBounds();
  const center=state.map?.getCenter()||state.center;
@@ -204,7 +224,7 @@ function mapStamp(label=''){
  $('mapStamp').textContent=name+' · '+(label||MAP_PROVIDERS[mapProvider].label);
 }
 function googleMapsLink(p){
- const param=p.lat!=null&&p.lng!=null?(p.lat+','+p.lng):[p.name,where(p)].filter(Boolean).join(' ');
+ const param=p.lat!=null&&p.lng!=null?(p.lat+','+p.lng):(p.mapQuery||[p.name,where(p)].filter(Boolean).join(' '));
  return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(param);
 }
 function showMapFailure(){

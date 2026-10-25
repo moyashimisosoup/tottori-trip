@@ -58,6 +58,13 @@ JS読み込みタグはマンションポエムと同じSRIなしの公式unpkg�
 - **出所例**：[鳥取県立図書館の郷土文学](https://www.library.pref.tottori.jp/information/post.html)／[県施設座標](https://odp-pref-tottori.tori-info.co.jp/dataset/1457/resource/8575/content.html)／[国土交通省の万葉歌碑](https://www.cgr.mlit.go.jp/tottori/tono/html/kankou.html)／[鳥取市「文学の小径」](https://www.city.tottori.lg.jp/site/komichi/)／[青山剛昌ふるさと館](https://www.gamf.jp/42.html)／[PASHA公式](https://www.risouzu.com/)／[皆生温泉特殊浴場組合](https://kaike-soap.net/)。
 - 検証は分類・地図座標・文化スポットの表示・成年向け閲覧許可・アイコン表示・旅帖互換のスモークに限定。iPhone実機での仕上がりは未確認。
 
+## 2026-10-25 文学・偉人スポット初回拡充
+
+- [追加データと出典](docs/LITERARY_BATCH_01.md)：**新規42候補**（用瀬の歌碑・句碑24、砂丘の文人碑5、各地の記念館・資料館・人物ゆかりの場所13）。既存データは維持し、別ファイル `literary-batch-01.js` で管理。
+- 各候補は、本人・人物や碑の存在と公開住所/地区の公式根拠を確認済み。ただし各地点の**個別緯度経度は未確認**のため、今回はすべて参考地点とし、位置情報を使った「すれ違い」自動判定や地図ピンの対象にはしない。
+- 参考地点は地図中心が該当地域に近いときだけ一覧へ追加し、名称検索からも探せる。Googleマップの「検索」は位置確定を意味しない。
+- 既存のLeaflet＋地理院淡色地図、自サイトでのLeaflet CSS配信、旅帖localStorage・既存のGPS判定は変更しない。
+
 ## 技術的留意点
 
 - OpenPOI API: `https://api.openpoiapi.com/v1/search`, `center=lng,lat`, `bbox=west,south,east,north`（地図未生成時だけ `radius=6000`）、`limit=200`。認証不要、CORS許可。最大200件のため密集地の網羅は不可。検索は明示操作中心、移動中は300m/1分以上変化時に限定。

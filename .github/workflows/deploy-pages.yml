@@ -27,7 +27,7 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p _site
-          cp index.html styles.css app.js _site/
+          cp index.html styles.css app.js literary-batch-01.js _site/
           mkdir -p _site/vendor
           cp vendor/leaflet.css vendor/LEAFLET-LICENSE.txt _site/vendor/
           touch _site/.nojekyll
