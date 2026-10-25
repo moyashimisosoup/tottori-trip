@@ -56,3 +56,37 @@
 .stat b{display:block;font-size:22px}
 .stat small{display:block;font-size:11px;font-weight:800;white-space:nowrap}.export{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:20px 0}.export button,.export label{width:100%;font-size:12px}.import-btn{display:grid;place-items:center;cursor:pointer;border:2px solid var(--ink);background:var(--card);font-weight:800;min-height:42px}footer{border-top:2px solid var(--stroke);display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px;padding-top:15px;margin-top:22px;font-size:10px;color:var(--muted)}dialog{width:min(92vw,450px);max-height:calc(100dvh - 36px);overflow-y:auto;border:3px solid var(--ink);border-radius:0;padding:18px;background:var(--card);box-shadow:6px 6px 0 var(--ink);color:var(--ink)}dialog::backdrop{background:#1d283bb0}.dialog-head{display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.1em;font-weight:900}.dialog-head button{font-size:22px;padding:0;width:34px;min-height:34px}dialog h2{font-size:19px;margin:14px 0 8px;overflow-wrap:anywhere}dialog p{font-size:13px;color:var(--muted)}.detail-meta{font-size:12px;color:var(--muted)}#detailTags{font-size:11px;margin:12px 0}.badges{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:5px}.badge{display:inline-flex;align-items:center;justify-content:center;border:1.5px solid var(--ink);font-size:10px;line-height:1.2;min-height:23px;padding:3px 6px;font-weight:800;white-space:nowrap;background:#ece7dc;color:var(--ink)}.badge-geo{background:#e0e9d9}.badge-reference{background:#e6e5e1}.badge-visited{background:var(--gold)}.badge-near{background:#d4e3e9}.badge-seen{background:#eee3cc}.place-card .badges{margin-top:6px}.detail-source{display:block;color:var(--muted);margin-top:10px;font-size:11px}.detail-source:focus-visible{outline:2px solid var(--rose)}.detail-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:15px}.detail-actions button{font-size:12px;min-width:0;padding:11px 6px;white-space:nowrap;line-height:1.2;overflow:hidden}.detail-actions button:disabled{opacity:.45;cursor:not-allowed}.instructions p{margin:14px 0;line-height:1.7}.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:9999;border:2px solid var(--ink);background:var(--gold);padding:10px 16px;font-size:12px;font-weight:900;max-width:90vw;box-shadow:3px 3px 0 var(--ink)}.toast[hidden]{display:none}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(min-width:640px){.map-wrap{height:360px}.shell{padding:0 22px 35px}.header{height:92px}}@media print{.journal-toolbar{display:none!important}@page{size:A4;margin:14mm}body{background:#fff}.shell{max-width:none;padding:0}.header{height:auto}.hud,.explorer,.tabs,#placesPane,.export,footer,.icon-btn{display:none!important}#journalPane{display:block!important}.cards{grid-template-columns:1fr 1fr}.place-card{box-shadow:none;break-inside:avoid}.journal-stats{max-width:480px}.dialog{display:none}}
+/* APP-025 map: tiny Google-Maps-like speech-bubble markers using saved sprite art.
+   The existing Leaflet tile layer and map layout intentionally stay untouched. */
+.header-actions{display:flex;align-items:center;gap:6px}
+.map-poi-leaflet-icon{background:transparent;border:0}
+.map-icon-pin{position:relative;display:grid;place-items:center;width:34px;height:34px;
+ background:var(--card);border:2px solid var(--ink);border-radius:9px;
+ box-shadow:1px 2px 0 var(--ink);isolation:isolate}
+.map-icon-pin::before{content:"";position:absolute;left:11px;bottom:-7px;width:9px;height:9px;
+ background:var(--card);border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);
+ transform:rotate(45deg);z-index:-1}
+.map-poi-icon{width:30px;height:30px;display:grid;place-items:center;overflow:hidden}
+.map-poi-icon .pixel-art{transform:scale(.80);transform-origin:center;flex-shrink:0}
+.map-icon-pin.is-approx{border-style:dashed;opacity:.88}
+.map-icon-pin.is-search{background:var(--gold);box-shadow:0 0 0 2px var(--ink),1px 2px 0 var(--ink)}
+.map-icon-pin.is-search::before{background:var(--gold)}
+.map-icon-pin.is-focus{box-shadow:0 0 0 3px var(--gold),0 0 0 5px var(--ink)}
+.settings-check{display:flex;align-items:center;gap:10px;padding:12px;margin-top:16px;
+ border:2px solid var(--ink);background:var(--paper);font-weight:900;cursor:pointer}
+.settings-check input{width:22px;height:22px;flex:0 0 22px;accent-color:var(--ink)}
+.settings-label{display:block;font-size:13px;font-weight:900;margin:20px 0 8px}
+.settings-hint{font-size:12px;line-height:1.7;margin:9px 0}
+#settings select{font-size:16px}
+:root[data-tone="1"]{--ink:#464d55;--paper:#f1eee9;--card:#faf8f5;--rose:#a98f8b;--lime:#879287;--gold:#c9b98b;--muted:#636b72;--stroke:#cbc6be}
+:root[data-tone="2"]{--ink:#35465b;--paper:#f1f2ec;--card:#fcfcf8;--rose:#c38c7f;--lime:#8e9c8c;--gold:#d7bc79;--muted:#62717c;--stroke:#d2d6ca}
+:root[data-tone="4"]{--ink:#3c3543;--paper:#fcf1e0;--card:#fff9f0;--rose:#dc806a;--lime:#94a36d;--gold:#f0be54;--muted:#756878;--stroke:#ddcdbb}
+:root[data-tone="5"]{--ink:#1c3047;--paper:#fff5da;--card:#fffefa;--rose:#f17659;--lime:#69a56b;--gold:#f4c139;--muted:#52616c;--stroke:#c4c5b9}
+@media print{#settings,.header-actions{display:none!important}}
+
+/* Detail dialog uses the same sprite icon as each mini map callout. */
+.detail-heading{display:flex;align-items:center;gap:11px;margin:12px 0 8px;min-width:0}
+.detail-heading h2{flex:1;min-width:0;margin:0;font-size:19px;line-height:1.4}
+.detail-icon{display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;
+ border:2px solid var(--ink);background:var(--paper);box-shadow:2px 2px 0 var(--ink)}
+.detail-icon .pixel-art{flex-shrink:0}

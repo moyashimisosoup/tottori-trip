@@ -5,11 +5,11 @@
 <meta name="theme-color" content="#27334a"><meta name="description" content="鳥取の旅で訪れた・見つけた・すれ違った場所を、ひとつの旅帖に。">
 <title>とっとりトリップ</title>
 <link rel="stylesheet" href="vendor/leaflet.css?v=1.9.4-20261025">
-<link rel="stylesheet" href="styles.css?v=20261025-13">
+<link rel="stylesheet" href="styles.css?v=20261025-15">
 <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script defer src="literary-batch-01.js?v=20261025-03"></script>
 <script defer src="official-landmarks.js?v=20261025-02"></script>
-<script defer src="app.js?v=20261025-19"></script>
+<script defer src="app.js?v=20261025-21"></script>
 </head>
 <body>
 <div class="shell">
@@ -22,7 +22,7 @@
       <path fill="#ce7563" d="M4 12h2v1H4zm11 0h2v1h-2z"/>
       <path fill="#24334b" d="M9 15h1v1H9zm1 1h3v1h-3z"/>
     </svg><div class="brand">TOTTORI TRIP</div></div>
-    <button type="button" class="icon-btn" id="infoBtn" aria-label="使い方・出典">？</button>
+    <div class="header-actions"><button type="button" class="icon-btn" id="settingsBtn" aria-label="全体の設定" title="全体の設定">⚙</button><button type="button" class="icon-btn" id="infoBtn" aria-label="使い方・出典">？</button></div>
   </header>
   <main>
     <section class="hud panel" aria-label="旅の状況">
@@ -61,7 +61,16 @@
   </main>
   <footer><span>© <a href="https://openpoiapi.com/attribution.html" target="_blank" rel="noopener">OpenPOI API</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></span><span>旅の記録はこの端末に保存</span></footer>
 </div>
-<dialog id="detail"><form method="dialog" class="dialog-head"><span id="detailType">SPOT</span><button aria-label="閉じる">×</button></form><h2 id="detailName"></h2><div class="detail-meta" id="detailMeta"></div><p id="detailNote"></p><div id="detailTags"></div><div class="detail-actions"><button id="visitBtn" class="primary" type="button">✓ 訪れた</button><button id="nearBtn" type="button">◇ すれ違った</button><button id="confirmPositionBtn" type="button" hidden>⌖ この位置を確認・自動判定に使う</button><button id="viewOnMapBtn" type="button">⌖ 地図で見る</button><button id="googleMapsBtn" type="button">↗ Googleマップ</button></div></dialog>
+<dialog id="detail" aria-labelledby="detailName"><form method="dialog" class="dialog-head"><span id="detailType">SPOT</span><button aria-label="閉じる">×</button></form><div class="detail-heading"><span id="detailIcon" class="detail-icon" aria-hidden="true"></span><h2 id="detailName"></h2></div><div class="detail-meta" id="detailMeta"></div><p id="detailNote"></p><div id="detailTags"></div><div class="detail-actions"><button id="visitBtn" class="primary" type="button">✓ 訪れた</button><button id="nearBtn" type="button">◇ すれ違った</button><button id="confirmPositionBtn" type="button" hidden>⌖ この位置を確認・自動判定に使う</button><button id="viewOnMapBtn" type="button">⌖ 地図で見る</button><button id="googleMapsBtn" type="button">↗ Googleマップ</button></div></dialog>
+<dialog id="settings" aria-labelledby="settingsTitle">
+  <form method="dialog" class="dialog-head"><span>設定</span><button type="submit" aria-label="閉じる">×</button></form>
+  <h2 id="settingsTitle">表示の設定</h2>
+  <label class="settings-check" for="showOtherPlaces"><input type="checkbox" id="showOtherPlaces"><span>観光スポット以外も表示</span></label>
+  <p class="settings-hint">通常は名所・史跡・文学・偉人・寺社を表示します。チェックを入れると飲食店や一般施設も表示します。検索やジャンルの指定はいつでも利用できます。旅帖の記録は消えません。</p>
+  <label class="settings-label" for="toneSelect">画面の色合い（5段階）</label>
+  <select id="toneSelect"><option value="1">1 くすみ</option><option value="2">2 やわらか</option><option value="3">3 標準</option><option value="4">4 あたたか</option><option value="5">5 くっきり</option></select>
+  <p class="settings-hint">背景・ボタン・ピンの縁取りを調整します。地理院の地図画像は変えません。</p>
+ </dialog>
 <dialog id="info"><form method="dialog" class="dialog-head"><span>あそびかた</span><button aria-label="閉じる">×</button></form><div class="instructions"><p><b>みつけた</b>：気になる場所を開くと旅帖に残ります。</p><p><b>すれ違った</b>：近くを通ったら記録。自動記録は「すれ違い ON」時のみ、画面を開いている間だけ動きます。</p><p><b>訪れた</b>：実際に行ったら自分で記録。</p><p>スポットの「地図で見る」でピンに移動します。地図を動かしたあとは「この範囲で再検索」を押すと、その範囲を探します。ダブルタップして2回目を押さえたまま上へ動かすと拡大できます。Googleマップでも開けます。</p><p>距離は目安。GPS精度や登録地点のずれがあります。表示しただけでは訪問とはなりません。 現在地を取得していないときも鳥取市の地図を初期表示します。初期中心は現在地ではありません。 鳥取駅などの駅・地名・住所を検索すると、その場所へ地図が移動します。アプリ未登録の地点は国土地理院の地名・住所検索で調べます。黄金色の四角は検索した地点です。タップすると通常のスポットと同じように旅帖へ記録できます。駅など施設位置が特定できる場所は自動すれ違いにも対応します。町丁目の代表点などは地図上で位置を確認してから「この位置を確認」を押すと自動判定対象になります。検索語を消すと元の地図へ戻ります。OpenPOIによる追加検索は検索前の表示範囲が対象です。</p><p>近くの施設を探す際、検索中心の座標をOpenPOI APIに送信します。GPSの移動履歴は保存しません。旅帖はこの端末に保存され、消去すると失われます。バックアップをおすすめします。</p><p>施設データ：<a href="https://openpoiapi.com/attribution.html" target="_blank" rel="noopener">OpenPOI API 出典・ライセンス</a>。文化スポットの補助情報：<a href="https://www.tottori-guide.jp/" target="_blank" rel="noopener">とっとり旅</a>、<a href="https://www.pref.tottori.lg.jp/tottori_bungaku_tanbo_map/" target="_blank" rel="noopener">鳥取県文学探訪</a>。</p></div></dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
