@@ -403,8 +403,8 @@ function openDetail(p){
  $('detailMeta').textContent=[where(p),prettyDist(p)].filter(Boolean).join(' · ');
  $('detailNote').textContent=p.note||'気になったら、旅帖に残しておきましょう。';
  const curated=String(p.id||'').startsWith('culture:')||String(p.id||'').startsWith('night:')||p.source==='curated';
- const sourceLabel=p.source==='tottori-city-poi'?'鳥取市オープンデータ':curated||p.source==='reference'?'公開資料':'OpenPOI API';
- const sourceURL=p.source==='tottori-city-poi'?HOSAI_DATASET:curated||p.source==='reference'?p.url:null;
+ const sourceLabel=p.source==='tottori-city-poi'?'鳥取市オープンデータ':p.source==='guide'?'観光・施設資料':curated||p.source==='reference'?'公開資料':'OpenPOI API';
+ const sourceURL=p.source==='tottori-city-poi'?HOSAI_DATASET:curated||p.source==='reference'||p.source==='guide'?p.url:null;
  const safeSource=sourceURL&&/^https:\/\//.test(sourceURL)?'<a class="detail-source" href="'+q(sourceURL)+'" target="_blank" rel="noopener noreferrer">'+sourceLabel+' ↗</a>':'<small class="detail-source">'+sourceLabel+'</small>';
  $('detailTags').innerHTML=badgesFor(p,row)+safeSource+(p.verified===false?'<small class="detail-source">参考地点・自動すれ違い対象外</small>':'');
  $('viewOnMapBtn').disabled=p.lat==null||p.lng==null;
