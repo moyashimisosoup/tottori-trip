@@ -812,6 +812,7 @@ function openDetail(p){
  state.selected=p;eventFor(p,'seen');const row=journalRecordFor(p);
  $('detailType').textContent=(TYPES[effectiveType(p)]||TYPES.other)[1];
  $('detailName').textContent=p.name;
+ $('detailIcon').innerHTML=pixelIcon(p); // Same atlas art as the selected map pin.
  $('detailMeta').textContent=[where(p),prettyDist(p)].filter(Boolean).join(' · ');
  $('detailNote').textContent=p.note||'気になったら、旅帖に残しておきましょう。';
  const curated=String(p.id||'').startsWith('culture:')||String(p.id||'').startsWith('night:')||p.source==='curated';
