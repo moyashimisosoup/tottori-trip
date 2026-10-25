@@ -131,7 +131,7 @@ function searchVisibleMap(){
  fetchPlaces(q)
 }
 function badgeHTML(label,kind){return '<span class="badge badge-'+kind+'">'+q(label)+'</span>'}
-function positionBadge(p){return p.lat==null||p.lng==null?'位置なし':p.source==='guide'?'概略位置':p.source==='tottori-city-poi'?'公式座標':'位置あり'}
+function positionBadge(p){return p.lat==null||p.lng==null?(p.address?'住所のみ':'位置なし'):p.verified===false?'概略位置':p.source==='tottori-city-poi'?'公式座標':'位置あり'}
 function badgesFor(p,row){
  const parts=[badgeHTML((TYPES[p.type]||TYPES.other)[1],'type')];
  if(p.relatedTypes?.includes('people'))parts.push(badgeHTML('偉人','type'));
@@ -402,7 +402,11 @@ function openDetail(p){
  $('detailName').textContent=p.name;
  $('detailMeta').textContent=[where(p),prettyDist(p)].filter(Boolean).join(' · ');
  $('detailNote').textContent=p.note||'気になったら、旅帖に残しておきましょう。';
- $('detailTags').innerHTML=badgesFor(p,row)+(p.source==='guide'?'<small class="detail-source">参考地点・自動判定対象外</small>':p.source==='tottori-city-poi'?'<a class="detail-source" href="'+HOSAI_DATASET+'" target="_blank" rel="noopener">鳥取市オープンデータ ↗</a>':'<small class="detail-source">OpenPOI API</small>');
+ const curated=String(p.id||'').startsWith('culture:')||String(p.id||'').startsWith('night:')||p.source==='curated';
+ const sourceLabel=p.source==='tottori-city-poi'?'鳥取市オープンデータ':curated||p.source==='reference'?'公開資料':'OpenPOI API';
+ const sourceURL=p.source==='tottori-city-poi'?HOSAI_DATASET:curated||p.source==='reference'?p.url:null;
+ const safeSource=sourceURL&&/^https:\/\//.test(sourceURL)?'<a class="detail-source" href="'+q(sourceURL)+'" target="_blank" rel="noopener noreferrer">'+sourceLabel+' ↗</a>':'<small class="detail-source">'+sourceLabel+'</small>';
+ $('detailTags').innerHTML=badgesFor(p,row)+safeSource+(p.verified===false?'<small class="detail-source">参考地点・自動すれ違い対象外</small>':'');
  $('viewOnMapBtn').disabled=p.lat==null||p.lng==null;
  $('visitBtn').textContent=row.visitedAt?'✓ 訪問済':'✓ 訪れた';
  $('visitBtn').setAttribute('aria-label',row.visitedAt?'訪問を記録済み':'訪問を記録');
