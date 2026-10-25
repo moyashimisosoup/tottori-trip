@@ -237,9 +237,9 @@ window.TOTTORI_LITERARY_SITES_04=[
     "id": "lit04:site:11",
     "name": "生田春月詩碑（淀江白鳳の丘展示館前）",
     "area": "yonago",
-    "address": "米子市淀江町福岡",
+    "address": "米子市淀江町福岡977-2",
     "note": "詩『故郷の唄』の一節を刻む生田春月詩碑。展示館前。",
-    "url": "https://www.city.yonago.lg.jp/11460.htm",
+    "url": "https://www.city.yonago.lg.jp/secure/15136/201205.pdf",
     "source": "reference",
     "type": "literature",
     "category": "literature",
@@ -249,12 +249,13 @@ window.TOTTORI_LITERARY_SITES_04=[
     "lat": null,
     "lng": null,
     "verified": false,
-    "mapQuery": "生田春月詩碑（淀江白鳳の丘展示館前） 米子市淀江町福岡",
+    "mapQuery": "生田春月詩碑（淀江白鳳の丘展示館前） 米子市淀江町福岡977-2",
     "attributions": [
-      "https://www.city.yonago.lg.jp/11460.htm"
+      "https://www.city.yonago.lg.jp/secure/15136/201205.pdf",
+      "https://www.yonagobunka.net/hakuhounooka/exhibition/info/"
     ],
     "licenses": [],
-    "evidenceLevel": "official-regional"
+    "evidenceLevel": "official"
   },
   {
     "id": "lit04:site:12",
@@ -262,7 +263,7 @@ window.TOTTORI_LITERARY_SITES_04=[
     "area": "yonago",
     "address": "米子市東町",
     "note": "旧明道教育学舎を記念する碑。生田春月『相ひ寄る魂』の一節が刻まれている。米子合同庁舎前。",
-    "url": "https://www.yonago-toshokan.jp/corner/tottori/ikuta",
+    "url": "https://www.city.yonago.lg.jp/secure/15136/201205.pdf",
     "source": "reference",
     "type": "literature",
     "category": "literature",
@@ -274,10 +275,10 @@ window.TOTTORI_LITERARY_SITES_04=[
     "verified": false,
     "mapQuery": "生田春月「明道教育学舎跡」碑 米子市東町",
     "attributions": [
-      "https://www.yonago-toshokan.jp/corner/tottori/ikuta"
+      "https://www.city.yonago.lg.jp/secure/15136/201205.pdf"
     ],
     "licenses": [],
-    "evidenceLevel": "regional"
+    "evidenceLevel": "official"
   },
   {
     "id": "lit04:site:13",
