@@ -224,7 +224,7 @@ function mapStamp(label=''){
  $('mapStamp').textContent=name+' · '+(label||MAP_PROVIDERS[mapProvider].label);
 }
 function googleMapsLink(p){
- const param=p.lat!=null&&p.lng!=null?(p.lat+','+p.lng):[p.name,where(p)].filter(Boolean).join(' ');
+ const param=p.lat!=null&&p.lng!=null?(p.lat+','+p.lng):(p.mapQuery||[p.name,where(p)].filter(Boolean).join(' '));
  return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(param);
 }
 function showMapFailure(){
