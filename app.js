@@ -254,7 +254,7 @@ function geocodeResultCard(p){
   '<span class="badges"><span class="badge badge-reference">地図検索・未登録</span></span>'+
   '<span class="minor">'+(p.source==='railway'?'駅の代表座標':'地理院検索の参考座標')+
   '（旅帖の自動判定対象外）</span></span><span class="arrow">›</span>';
- btn.addEventListener('click',()=>focusSearchResults({silent:true}));
+ btn.addEventListener('click',()=>{focusSearchResults({silent:true});document.querySelector('.map-wrap')?.scrollIntoView({behavior:'smooth',block:'center'})});
  return btn
 }
 function clearGeocode(){
