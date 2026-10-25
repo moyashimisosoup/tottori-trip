@@ -61,7 +61,18 @@ const NIGHT_VENUES=[
 const $=id=>document.getElementById(id);
 const TYPES={sight:['✦','名所'],history:['▥','史跡'],literature:['本','文学'],people:['★','偉人'],food:['食','飲食'],adult:['夜','風俗'],other:['・','施設']};
 const q=(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const initial=()=>{try{const obj=JSON.parse(localStorage.getItem(KEY)||'{}');return obj&&typeof obj==='object'&&!Array.isArray(obj)?obj:{}}catch{return {}}};
+const initial=()=>{
+ try{
+  const obj=JSON.parse(localStorage.getItem(KEY)||'{}');
+  if(!obj||typeof obj!=='object'||Array.isArray(obj))return {};
+  // Repair earlier misclassified post offices without changing saved visit times.
+  for(const row of Object.values(obj)){
+   if(row?.place?.type==='history'&&/郵便局|郵便ポスト/.test(row.place.name||''))
+    row.place.type='other';
+  }
+  return obj
+ }catch{return {}}
+};
 const state={area:'tottori',center:AREAS.tottori,filter:'all',query:'',places:[],results:[],journal:initial(),tab:'places',selected:null,map:null,markers:null,gps:null,watch:null,tracking:false,adultOK:false,lastFetch:0,lastLoc:null,toastTimer:0,loading:false};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state.journal))}catch{toast('保存できません。空き容量をご確認ください')}}
 function idOf(p){return p.id||'poi:'+([p.source||'',p.name||'',Number(p.lat).toFixed(5),Number(p.lng).toFixed(5)].join('|'))}
