@@ -65,7 +65,7 @@ const initial=()=>{
   return obj
  }catch{return {}}
 };
-const state={area:'tottori',center:AREAS.tottori,filter:'all',query:'',places:[],results:[],journal:initial(),tab:'places',journalFilter:'all',selected:null,map:null,markers:null,gps:null,watch:null,tracking:false,lastFetch:0,lastLoc:null,toastTimer:0,loading:false};
+const state={area:'tottori',center:AREAS.tottori,filter:'all',query:'',places:[],results:[],journal:initial(),tab:'places',journalFilter:'all',journalStatus:'all',selected:null,map:null,markers:null,gps:null,watch:null,tracking:false,lastFetch:0,lastLoc:null,toastTimer:0,loading:false};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state.journal))}catch{toast('保存できません。空き容量をご確認ください')}}
 function idOf(p){return p.id||'poi:'+([p.source||'',p.name||'',Number(p.lat).toFixed(5),Number(p.lng).toFixed(5)].join('|'))}
 function normalize(raw){if(!raw||!raw.name)return null;const lat=raw.lat===''||raw.lat==null?null:Number(raw.lat);const lng=raw.lng===''||raw.lng==null?null:Number(raw.lng);if(lat!==null&&(!Number.isFinite(lat)||lat < -90||lat>90))return null;if(lng!==null&&(!Number.isFinite(lng)||lng< -180||lng>180))return null;
@@ -178,20 +178,11 @@ function badgesFor(p,row){
  return '<span class="badges">'+parts.join('')+'</span>';
 }
 
-const PIXEL_ICONS={
- scroll:'<path fill="#9ebf77" d="M2 2h3v2h6V2h3v12h-3v-2H5v2H2z"/><path fill="#fff3dc" d="M5 4h6v8H5z"/><path fill="#26334a" d="M6 6h4v1H6zm0 2h4v1H6zm1 2h3v1H7z"/>',
- book:'<path fill="#b592c3" d="M1 3h6l1 2 1-2h6v11H9l-1 1-1-1H1z"/><path fill="#fff3dc" d="M2 4h5v8H2zm7 0h5v8H9z"/><path fill="#527aa3" d="M3 6h3v1H3zm0 2h3v1H3zm7-2h3v1h-3zm0 2h3v1h-3z"/>',
- bust:'<path fill="#7ea4c6" d="M6 2h4v1h2v5h-2v2h2l2 3v2H2v-2l2-3h2V8H4V3h2z"/><path fill="#f6e6c7" d="M5 4h6v4H5z"/><path fill="#26334a" d="M6 5h1v1H6zm3 0h1v1H9z"/>',
- temple:'<path fill="#314e76" d="M7 1h2v2h3v2h2v2H2V5h2V3h3z"/><path fill="#fff3dc" d="M3 7h10v7H3z"/><path fill="#bd9366" d="M4 8h8v1H4zm0 5h8v1H4z"/><path fill="#26334a" d="M6 9h4v4H6z"/>',
- torii:'<path fill="#df786a" d="M2 2h12v2H2zm1 3h10v2H3zm2 2h2v8H5zm4 0h2v8H9z"/><path fill="#efc767" d="M7 5h2v2H7z"/>',
- castle:'<path fill="#26334a" d="M6 1h4v2h3v3h2v9H1V6h2V3h3z"/><path fill="#8bb0c8" d="M4 5h8v3H4z"/><path fill="#fff3dc" d="M3 9h10v5H3z"/><path fill="#26334a" d="M7 10h2v4H7z"/>',
- post:'<path fill="#26334a" d="M1 3h14v11H1z"/><path fill="#fff3dc" d="M2 4h12v9H2z"/><path fill="#e88d7d" d="M3 5h10v2H3z"/><path fill="#26334a" d="M3 8l5 3 5-3v1l-5 4-5-4z"/>',
- food:'<path fill="#26334a" d="M1 7h14v4l-3 3H4l-3-3z"/><path fill="#e88d7d" d="M2 8h12v3H2z"/><path fill="#fff3dc" d="M5 3h2v4H5zm4-2h2v6H9z"/><path fill="#9bbf72" d="M6 8h4v2H6z"/>',
- night:'<path fill="#f0c35b" d="M9 1h3v2h-2v7H9V1zM4 4h5v8H4l-2-4z"/><path fill="#d3e4ea" d="M13 5h2v2h-2zm-9-3h1v1H4z"/>',
- tree:'<path fill="#8fc06b" d="M6 1h4v2h3v6h-3v2H4V9H2V4h4z"/><path fill="#a77951" d="M7 10h3v5H7z"/>',
- museum:'<path fill="#314e76" d="M1 5h14v2H1zM8 1l7 4H1z"/><path fill="#fff3dc" d="M2 7h12v6H2z"/><path fill="#7ea4c6" d="M4 7h2v6H4zm3 0h2v6H7zm3 0h2v6h-2z"/><path fill="#314e76" d="M1 13h14v2H1z"/>',
- building:'<path fill="#314e76" d="M3 1h10v14H3z"/><path fill="#fff3dc" d="M4 3h8v11H4z"/><path fill="#7ea4c6" d="M5 4h2v2H5zm4 0h2v2H9zM5 8h2v2H5zm4 0h2v2H9z"/>'
-};
+// The source is the ChatGPT Library image 「和風ピクセルアートアイコンシート」.
+// Its twelve icons were cropped and packed into a single 192x144 PNG atlas,
+// preserving the original artwork while loading only one small image file.
+const ATLAS_ICONS=new Set(['scroll','quill','bust','castle','torii','temple',
+ 'post','book','food','tree','night','building']);
 function iconKind(p){
  const n=String(p.name||'');
  if(/郵便局|郵便ポスト|ゆうちょ/.test(n))return 'post';
@@ -199,41 +190,69 @@ function iconKind(p){
  if(/寺院|寺$|寺（|寺\(/.test(n))return 'temple';
  if(/城跡|城址|城郭/.test(n))return 'castle';
  if(/図書館|文庫/.test(n))return 'book';
- if(/歌碑|句碑|文学の小径|詩碑|文学/.test(n))return 'scroll';
- if(/記念館|資料館|博物館|歴史館|美術館/.test(n))return p.type==='people'?'bust':'museum';
+ if(/句碑|俳句|俳人/.test(n))return 'quill';
+ if(/歌碑|文学の小径|詩碑|文学/.test(n))return 'scroll';
+ if(/記念館|資料館|博物館|歴史館|美術館/.test(n))return p.type==='people'?'bust':'building';
  if(p.type==='people')return 'bust';
  if(p.type==='literature')return 'scroll';
  if(p.type==='food')return 'food';
  if(effectiveType(p)==='temple')return 'temple';
  if(p.type==='sight'&&/森|公園|山|砂丘|自然/.test(n))return 'tree';
- if(p.type==='history')return 'museum';
+ if(p.type==='history')return 'building';
  return 'building'
 }
 function pixelIcon(p){
  const kind=iconKind(p);
- return '<svg class="pixel-art" viewBox="0 0 16 16" width="30" height="30" aria-hidden="true" focusable="false" shape-rendering="crispEdges">'+PIXEL_ICONS[kind]+'</svg>'
+ return '<span class="pixel-art icon-'+(ATLAS_ICONS.has(kind)?kind:'building')+'" aria-hidden="true"></span>'
 }
 
 function fillPlaceCard(place,row){const btn=document.createElement('button');btn.className='place-card';btn.type='button';btn.dataset.id=place.id;const [,label]=TYPES[place.type]||TYPES.other;btn.innerHTML=`<span class="symbol" aria-hidden="true">${pixelIcon(place)}</span><span class="content"><span class="name">${q(place.name)}</span>${badgesFor(place,row)}<span class="minor">${q(prettyDist(place))}</span></span><span class="arrow" aria-hidden="true">›</span>`;btn.addEventListener('click',()=>openDetail(place));return btn}
 function renderList(){state.places=allPlaces();let list=filtered();$('placesCount').textContent=list.length;$('places').replaceChildren(...list.map(p=>fillPlaceCard(p,state.journal[p.id])));if(!state.loading)$('message').textContent=list.length?`${list.length}か所`: 'この条件の場所はありません。エリアやジャンルを変えてください。';drawMarkers(list)}
+const JOURNAL_STATES=[
+ {id:'seen',label:'みつけた',date:'seenAt'},
+ {id:'near',label:'すれ違い',date:'nearAt'},
+ {id:'visited',label:'訪れた',date:'visitedAt'}
+];
+function latestJournalStatus(row){
+ // Keep all original timestamps, display each entry only in its furthest phase.
+ if(row?.visitedAt)return 'visited';
+ if(row?.nearAt)return 'near';
+ if(row?.seenAt)return 'seen';
+ return 'none'
+}
+function filteredJournalRows(){
+ const category=state.journalFilter,status=state.journalStatus;
+ return Object.values(state.journal).filter(row=>row&&row.place)
+  .filter(row=>category==='all'||effectiveType(row.place)===category||row.place.relatedTypes?.includes(category))
+  .filter(row=>status==='all'||latestJournalStatus(row)===status)
+}
 function renderJournal(){
  const all=Object.values(state.journal).filter(row=>row&&row.place);
- const selection=state.journalFilter;
- const rows=all.filter(row=>selection==='all'||
-  effectiveType(row.place)===selection||row.place.relatedTypes?.includes(selection))
-  .sort((a,b)=>new Date(b.visitedAt||b.nearAt||b.seenAt||0)-new Date(a.visitedAt||a.nearAt||a.seenAt||0));
+ const byCategory=all.filter(row=>state.journalFilter==='all'||
+   effectiveType(row.place)===state.journalFilter||
+   row.place.relatedTypes?.includes(state.journalFilter));
+ const rows=filteredJournalRows().sort((a,b)=>
+   new Date(b.visitedAt||b.nearAt||b.seenAt||0)-new Date(a.visitedAt||a.nearAt||a.seenAt||0));
  $('journalCount').textContent=all.length;
  $('journalShownCount').textContent=rows.length+'件';
- $('stats').innerHTML=[['みつけた',rows.filter(r=>r.seenAt).length],
-  ['すれ違い',rows.filter(r=>r.nearAt).length],
-  ['訪れた',rows.filter(r=>r.visitedAt).length]]
-  .map(([k,v])=>`<div class="stat"><b>${v}</b><small>${k}</small></div>`).join('');
+ $('stats').innerHTML=JOURNAL_STATES.map(item=>{
+  const count=byCategory.filter(row=>latestJournalStatus(row)===item.id).length;
+  const active=state.journalStatus===item.id;
+  return `<button class="stat${active?' active':''}" type="button"
+    data-journal-status="${item.id}" aria-pressed="${active}">
+    <b>${count}</b><small>${item.label}</small></button>`
+ }).join('');
  $('journal').replaceChildren(...(rows.length?rows.map(r=>fillPlaceCard(r.place,r)):
   [Object.assign(document.createElement('div'),{className:'empty',
-   textContent:all.length?'このジャンルの記録はまだありません。':'旅の記録はまだありません。'})]));
+   textContent:all.length?'この条件の記録はまだありません。':'旅の記録はまだありません。'})]));
 }
 function setJournalFilter(category){
  state.journalFilter=['all','sight','history','temple','literature','people','food','other'].includes(category)?category:'all';
+ renderJournal()
+}
+function toggleJournalStatus(status){
+ if(!JOURNAL_STATES.some(x=>x.id===status))return;
+ state.journalStatus=state.journalStatus===status?'all':status;
  renderJournal()
 }
 function markerCategory(p){
@@ -518,15 +537,20 @@ function chooseFilter(f){
 }
 function resetArea(){const a=AREAS[$('area').value];state.area=$('area').value;state.center={lat:a.lat,lng:a.lng};state.gps=null;status(a.name+'の地図 · 現在地未取得');state.query='';$('search').value='';state.lastQuery='';updateMap();fetchPlaces()}
 function doSearch(ev){ev.preventDefault();state.query=$('search').value.trim();if(state.query){state.filter='all';for(const b of document.querySelectorAll('[data-filter]')){b.classList.toggle('active',b.dataset.filter==='all');b.setAttribute('aria-pressed',String(b.dataset.filter==='all'))}const query=state.query;state.query='';fetchPlaces(query).then(()=>{state.query='';renderList()})}else fetchPlaces()}
-function dataRows(category='all'){return Object.values(state.journal).filter(v=>v&&v.place&&(category==='all'||effectiveType(v.place)===category||v.place.relatedTypes?.includes(category))).sort((a,b)=>new Date(a.seenAt||a.nearAt||a.visitedAt||0)-new Date(b.seenAt||b.nearAt||b.visitedAt||0))}
+function dataRows(category='all',status='all'){
+ return Object.values(state.journal)
+ .filter(v=>v&&v.place&&(category==='all'||effectiveType(v.place)===category||v.place.relatedTypes?.includes(category)))
+ .filter(v=>status==='all'||latestJournalStatus(v)===status)
+ .sort((a,b)=>new Date(a.seenAt||a.nearAt||a.visitedAt||0)-new Date(b.seenAt||b.nearAt||b.visitedAt||0))
+}
 function stamp(d){if(!d)return '';const v=new Date(d);return Number.isNaN(v.getTime())?'':new Intl.DateTimeFormat('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(v)}
 function download(blob,filename){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000)}
 function backup(){const payload={app:'とっとりトリップ',version:1,exportedAt:new Date().toISOString(),entries:dataRows()};download(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),'tottori-trip-backup.json');toast('バックアップを作成しました')}
 async function restore(ev){const file=ev.target.files?.[0];ev.target.value='';if(!file)return;if(file.size>3000000){toast('ファイルが大きすぎます');return}try{const data=JSON.parse(await file.text());if(data.app!=='とっとりトリップ'||!Array.isArray(data.entries)||data.entries.length>3000)throw Error('invalid file');let count=0;for(const row of data.entries){if(!row||typeof row.id!=='string'||row.id.length>220||typeof row.place?.name!=='string'||row.place.name.length>150)continue;const p=row.place;const safe={id:row.id,name:p.name.slice(0,130),type:Object.hasOwn(TYPES,p.type)?p.type:'other',lat:Number.isFinite(Number(p.lat))&&p.lat!==null?Number(p.lat):null,lng:Number.isFinite(Number(p.lng))&&p.lng!==null?Number(p.lng):null,address:String(p.address||'').slice(0,180),note:String(p.note||'').slice(0,400),source:String(p.source||''),verified:p.verified===true,licenses:Array.isArray(p.licenses)?p.licenses.slice(0,15):[],attributions:Array.isArray(p.attributions)?p.attributions.slice(0,15):[]};state.journal[row.id]={id:row.id,place:safe,seenAt:safeDate(row.seenAt),nearAt:safeDate(row.nearAt),visitedAt:safeDate(row.visitedAt)};count++}save();renderJournal();toast(`${count}件を復元しました`)}catch{toast('復元できないJSONファイルです')}}
 function safeDate(s){if(typeof s!=='string'||s.length>40)return null;return Number.isNaN(Date.parse(s))?null:s}
 function drawWrapped(ctx,text,x,y,maxWidth,lineHeight,maxLines){const chars=Array.from(text);let line='',lines=0;for(const c of chars){if(ctx.measureText(line+c).width>maxWidth&&line){ctx.fillText(line,x,y+lines*lineHeight);lines++;line=c;if(lines>=maxLines)return lines}else line+=c}if(line&&lines<maxLines){ctx.fillText(line,x,y+lines*lineHeight);lines++}return lines}
-function makeCanvas(){const visible=dataRows(state.journalFilter),total=visible.length,rows=visible.slice(0,60);const w=900,top=240,rowH=88,h=Math.max(480,top+Math.max(1,rows.length)*rowH+100);const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#f6f2e6';x.fillRect(0,0,w,h);x.fillStyle='#253348';x.font='bold 56px sans-serif';x.fillText('とっとりトリップ',60,100);x.font='24px sans-serif';x.fillText(new Date().toLocaleDateString('ja-JP'),62,150);x.fillText(`みつけた ${rows.filter(r=>r.seenAt).length}   すれ違い ${rows.filter(r=>r.nearAt).length}   訪れた ${rows.filter(r=>r.visitedAt).length}`,60,194);rows.forEach((r,i)=>{const y=top+i*rowH;x.fillStyle=i%2?'#f0ebdd':'#fffdf5';x.fillRect(45,y-12,w-90,rowH-4);x.fillStyle='#253348';x.font='bold 25px sans-serif';drawWrapped(x,r.place.name,60,y+23,650,26,1);x.font='20px sans-serif';x.fillStyle='#6b727b';x.fillText(`${rank(r)}  ${stamp(r.visitedAt||r.nearAt||r.seenAt)}`,62,y+56)});x.fillStyle='#253348';x.font='18px sans-serif';x.fillText(`TOTTORI TRIP  ·  OpenPOI API  ·  ${rows.length}/${total}件`,50,h-32);return c}
+function makeCanvas(){const visible=dataRows(state.journalFilter,state.journalStatus),total=visible.length,rows=visible.slice(0,60);const w=900,top=240,rowH=88,h=Math.max(480,top+Math.max(1,rows.length)*rowH+100);const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#f6f2e6';x.fillRect(0,0,w,h);x.fillStyle='#253348';x.font='bold 56px sans-serif';x.fillText('とっとりトリップ',60,100);x.font='24px sans-serif';x.fillText(new Date().toLocaleDateString('ja-JP'),62,150);x.fillText(`みつけた ${rows.filter(r=>r.seenAt).length}   すれ違い ${rows.filter(r=>r.nearAt).length}   訪れた ${rows.filter(r=>r.visitedAt).length}`,60,194);rows.forEach((r,i)=>{const y=top+i*rowH;x.fillStyle=i%2?'#f0ebdd':'#fffdf5';x.fillRect(45,y-12,w-90,rowH-4);x.fillStyle='#253348';x.font='bold 25px sans-serif';drawWrapped(x,r.place.name,60,y+23,650,26,1);x.font='20px sans-serif';x.fillStyle='#6b727b';x.fillText(`${rank(r)}  ${stamp(r.visitedAt||r.nearAt||r.seenAt)}`,62,y+56)});x.fillStyle='#253348';x.font='18px sans-serif';x.fillText(`TOTTORI TRIP  ·  OpenPOI API  ·  ${rows.length}/${total}件`,50,h-32);return c}
 async function imageExport(){try{const c=makeCanvas();const blob=await new Promise(resolve=>c.toBlob(resolve,'image/png'));if(!blob)throw Error('png');const file=new File([blob],'tottori-trip.png',{type:'image/png'});if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:'とっとりトリップ'});return}catch(err){if(err.name==='AbortError')return}}download(blob,'tottori-trip.png');toast('旅帖の画像を作成しました')}catch{toast('画像を作成できませんでした')}}
 function openGoogle(){const p=state.selected;if(p)window.open(googleMapsLink(p),'_blank','noopener')}
-function init(){mapInit();$('area').addEventListener('change',resetArea);$('locateBtn').addEventListener('click',locate);$('trackBtn').addEventListener('click',toggleTracking);$('searchForm').addEventListener('submit',doSearch);$('searchHereBtn').addEventListener('click',searchVisibleMap);document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>chooseFilter(b.dataset.filter)));$('placesTab').addEventListener('click',()=>showTab('places'));$('journalTab').addEventListener('click',()=>showTab('journal'));$('journalFilter').addEventListener('change',e=>setJournalFilter(e.target.value));$('visitBtn').addEventListener('click',()=>recordClick('visited'));$('nearBtn').addEventListener('click',()=>recordClick('near'));$('googleMapsBtn').addEventListener('click',openGoogle);$('viewOnMapBtn').addEventListener('click',viewOnMap);$('mapSourceBtn').addEventListener('click',changeMapProvider);$('mapRetryBtn').addEventListener('click',reloadMapTiles);$('mapFallbackRetryBtn').addEventListener('click',reloadMapTiles);$('infoBtn').addEventListener('click',()=>$('info').showModal());$('imageBtn').addEventListener('click',imageExport);$('printBtn').addEventListener('click',()=>{renderJournal();window.print()});$('backupBtn').addEventListener('click',backup);$('restoreFile').addEventListener('change',restore);$('journalCount').textContent=Object.keys(state.journal).length;renderList();fetchPlaces();}
+function init(){mapInit();$('stats').addEventListener('click',e=>{const target=e.target.closest('[data-journal-status]');if(target)toggleJournalStatus(target.dataset.journalStatus)});$('area').addEventListener('change',resetArea);$('locateBtn').addEventListener('click',locate);$('trackBtn').addEventListener('click',toggleTracking);$('searchForm').addEventListener('submit',doSearch);$('searchHereBtn').addEventListener('click',searchVisibleMap);document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>chooseFilter(b.dataset.filter)));$('placesTab').addEventListener('click',()=>showTab('places'));$('journalTab').addEventListener('click',()=>showTab('journal'));$('journalFilter').addEventListener('change',e=>setJournalFilter(e.target.value));$('visitBtn').addEventListener('click',()=>recordClick('visited'));$('nearBtn').addEventListener('click',()=>recordClick('near'));$('googleMapsBtn').addEventListener('click',openGoogle);$('viewOnMapBtn').addEventListener('click',viewOnMap);$('mapSourceBtn').addEventListener('click',changeMapProvider);$('mapRetryBtn').addEventListener('click',reloadMapTiles);$('mapFallbackRetryBtn').addEventListener('click',reloadMapTiles);$('infoBtn').addEventListener('click',()=>$('info').showModal());$('imageBtn').addEventListener('click',imageExport);$('printBtn').addEventListener('click',()=>{renderJournal();window.print()});$('backupBtn').addEventListener('click',backup);$('restoreFile').addEventListener('change',restore);$('journalCount').textContent=Object.keys(state.journal).length;renderList();fetchPlaces();}
 if(document.readyState==='complete')init();else window.addEventListener('load',init,{once:true});
