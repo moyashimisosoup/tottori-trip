@@ -60,6 +60,11 @@ jobs:
           stylesheet = [p for p in parser.links if p.partition('?')[0].endswith('.css')]
           for css in stylesheet:
               css_path = root/urlsplit(css).path
+              # Leaflet's stock CSS mentions its optional default marker PNGs,
+              # which our custom map pins never use and the repo doesn't ship.
+              # Verify the app's own image atlas dependencies instead.
+              if css_path.name != 'styles.css':
+                  continue
               if css_path.is_file():
               for asset_match in re.finditer(r'url\(([^)]*)\)', css_path.read_text(encoding='utf-8')):
                   value = asset_match.group(1).strip()
