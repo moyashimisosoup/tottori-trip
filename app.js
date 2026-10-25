@@ -78,7 +78,11 @@ async function enrichRegisteredLocations(){
  addressEnrichmentActive=true;
  const areaAtStart=state.area;
  try{
-  for(const place of currentGuides()){
+  // Prioritize address lookups for literary heritage. They are the main
+  // visitor-facing dataset and need map pins sooner than generic venues.
+  const pending=currentGuides().sort((a,b)=>
+   Number(b.id?.startsWith('lit04:'))-Number(a.id?.startsWith('lit04:')));
+  for(const place of pending){
    if(areaAtStart!==state.area||addressNetworkUnavailable)break;
    if(Number.isFinite(place.lat)&&Number.isFinite(place.lng))continue;
    const address=ADDRESS_CATALOG.get(place.id)?.address;
@@ -264,6 +268,7 @@ function rank(row){return row?.visitedAt?'訪れた':row?.nearAt?'すれ違っ�
 function showTab(tab){state.tab=tab;const on=tab==='places';$('placesPane').hidden=!on;$('journalPane').hidden=on;$('placesTab').classList.toggle('active',on);$('journalTab').classList.toggle('active',!on);$('placesTab').setAttribute('aria-pressed',String(on));$('journalTab').setAttribute('aria-pressed',String(!on));if(!on)renderJournal();else renderList();refreshMapSize(90)}
 const LITERARY_BATCH_01=Array.isArray(window.TOTTORI_LITERARY_BATCH_01)?window.TOTTORI_LITERARY_BATCH_01:[];
 const LITERARY_PLACES_03=Array.isArray(window.TOTTORI_LITERARY_PLACES_03)?window.TOTTORI_LITERARY_PLACES_03:[];
+const LITERARY_SITES_04=Array.isArray(window.TOTTORI_LITERARY_SITES_04)?window.TOTTORI_LITERARY_SITES_04:[];
 const LITERARY_WORKS_03=Array.isArray(window.TOTTORI_LITERARY_WORKS_03)?window.TOTTORI_LITERARY_WORKS_03:[];
 const OFFICIAL_LANDMARKS=Array.isArray(window.TOTTORI_OFFICIAL_LANDMARKS)?window.TOTTORI_OFFICIAL_LANDMARKS:[];
 function currentGuides(){
@@ -276,6 +281,7 @@ function currentGuides(){
   ...CULTURE_SPOTS.filter(inArea),
   ...LITERARY_BATCH_01.filter(inArea),
   ...LITERARY_PLACES_03.filter(inArea),
+  ...LITERARY_SITES_04.filter(inArea),
   ...OFFICIAL_LANDMARKS.filter(inArea),
   ...(searchAll||state.area==='tottori'?HOSAI_MONUMENTS:[])
  ].map(withCatalog)

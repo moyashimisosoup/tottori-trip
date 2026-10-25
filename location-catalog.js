@@ -1,7 +1,7 @@
 /* APP-025 curated address catalog; legacy IDs retained; literary sites are approximate if no GPS coordinate. */
 window.TOTTORI_LOCATION_CATALOG={
-  "version": "2026-10-25-v1",
-  "count": 109,
+  "version": "2026-10-25-literary-sites-04",
+  "count": 126,
   "entries": [
     {
       "id": "guide:0",
@@ -1092,6 +1092,210 @@ window.TOTTORI_LOCATION_CATALOG={
       "verified": false,
       "approximate": true,
       "addressSource": "https://daisen-museum.jp/schedule/event/69/"
+    },
+    {
+      "id": "lit04:site:01",
+      "name": "ふるさと音楽碑（岡野貞一歌碑）",
+      "address": "鳥取市東町2丁目",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://www.torican.jp/spot/detail_1399.html",
+      "group": null,
+      "evidenceLevel": "official"
+    },
+    {
+      "id": "lit04:site:02",
+      "name": "ふるさとの歌の道（袋川沿い）",
+      "address": "鳥取市栄町",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://www.torican.jp/itineraries/detail_26.html",
+      "group": "literary-cluster",
+      "evidenceLevel": "official-group"
+    },
+    {
+      "id": "lit04:site:03",
+      "name": "春が来た歌碑（天満山公園）",
+      "address": "八頭郡八頭町船岡",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://www.pref.tottori.lg.jp/90046.htm",
+      "group": null,
+      "evidenceLevel": "official"
+    },
+    {
+      "id": "lit04:site:04",
+      "name": "生石村主真人の万葉歌碑（粟嶋神社）",
+      "address": "米子市彦名町1404",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://www.pref.tottori.lg.jp/manyo/",
+      "group": null,
+      "evidenceLevel": "official"
+    },
+    {
+      "id": "lit04:site:05",
+      "name": "山上憶良歌碑（伯耆国分寺跡）",
+      "address": "倉吉市国府",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://www.city.kurayoshi.lg.jp/5683.htm",
+      "group": null,
+      "evidenceLevel": "official"
+    },
+    {
+      "id": "lit04:site:06",
+      "name": "春の小川歌碑（袋川沿い）",
+      "address": "鳥取市栄町107-1",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://monument.sakura.ne.jp/file/harunoogawa.html",
+      "group": null,
+      "evidenceLevel": "secondary"
+    },
+    {
+      "id": "lit04:site:07",
+      "name": "故郷歌碑（智頭橋・きなんせ広場）",
+      "address": "鳥取市瓦町172",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://monument.sakura.ne.jp/31tottoriken.html",
+      "group": null,
+      "evidenceLevel": "secondary"
+    },
+    {
+      "id": "lit04:site:08",
+      "name": "朧月夜歌碑（醇風小学校前）",
+      "address": "鳥取市西町3-313",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://monument.sakura.ne.jp/31tottoriken.html",
+      "group": null,
+      "evidenceLevel": "secondary"
+    },
+    {
+      "id": "lit04:site:09",
+      "name": "三朝小唄歌碑（三朝橋）",
+      "address": "東伯郡三朝町三朝903-1",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://monument.sakura.ne.jp/file/misasakouta.html",
+      "group": null,
+      "evidenceLevel": "secondary"
+    },
+    {
+      "id": "lit04:site:10",
+      "name": "三朝小唄歌碑（かじか橋）",
+      "address": "東伯郡三朝町三朝302-1",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://monument.sakura.ne.jp/file/misasakouta.html",
+      "group": null,
+      "evidenceLevel": "secondary"
+    },
+    {
+      "id": "lit04:site:11",
+      "name": "生田春月詩碑（淀江白鳳の丘展示館前）",
+      "address": "米子市淀江町福岡977-2",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://www.city.yonago.lg.jp/secure/15136/201205.pdf",
+      "group": null,
+      "evidenceLevel": "official"
+    },
+    {
+      "id": "lit04:site:12",
+      "name": "生田春月「明道教育学舎跡」碑",
+      "address": "米子市東町",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://www.city.yonago.lg.jp/secure/15136/201205.pdf",
+      "group": null,
+      "evidenceLevel": "official"
+    },
+    {
+      "id": "lit04:site:13",
+      "name": "鳥取砂丘西側 文人歌碑・句碑群",
+      "address": "鳥取市浜坂",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://www.torican.jp/spot/detail_2904.html",
+      "group": "literary-cluster",
+      "evidenceLevel": "official-group"
+    },
+    {
+      "id": "lit04:site:14",
+      "name": "紅葉歌碑（鹿野町公園）",
+      "address": "鳥取市片原5-119",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://monument.sakura.ne.jp/31tottoriken.html",
+      "group": null,
+      "evidenceLevel": "secondary"
+    },
+    {
+      "id": "lit04:site:15",
+      "name": "春が来た歌碑（修立小学校校門前）",
+      "address": "鳥取市立川町5-339",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://monument.sakura.ne.jp/31tottoriken.html",
+      "group": null,
+      "evidenceLevel": "secondary"
+    },
+    {
+      "id": "lit04:site:16",
+      "name": "故郷歌碑（わらべ夢ひろば）",
+      "address": "鳥取市西町3-202",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://monument.sakura.ne.jp/31tottoriken.html",
+      "group": null,
+      "evidenceLevel": "secondary"
+    },
+    {
+      "id": "lit04:site:17",
+      "name": "故郷歌碑（福塚公園）",
+      "address": "日野郡日野町根雨716-22",
+      "lat": null,
+      "lng": null,
+      "verified": false,
+      "approximate": true,
+      "addressSource": "https://monument.sakura.ne.jp/31tottoriken.html",
+      "group": null,
+      "evidenceLevel": "secondary"
     }
   ]
 };
