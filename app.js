@@ -7,6 +7,7 @@ const LOCATION_CACHE_KEY='tottori-trip-address-cache-v1';
 // Addresses and known coordinates for all 106 static registered spots.
 // Dynamic OpenPOI results are kept separate and use their source coordinates.
 const ADDRESS_CATALOG=new Map((window.TOTTORI_LOCATION_CATALOG?.entries||[]).map(p=>[p.id,p]));
+const LITERARY_SEEDS=new Map((window.TOTTORI_LITERARY_LOCATION_SEEDS_06?.entries||[]).map(p=>[p.id,p]));
 function readLocationCache(){
  try{
   const x=JSON.parse(localStorage.getItem(LOCATION_CACHE_KEY)||'{}');
@@ -24,23 +25,26 @@ function addressQueryText(address){
 }
 function withCatalog(p){
  const info=ADDRESS_CATALOG.get(p.id);
- if(!info)return p;
- const address=p.address||info.address||'';
+ const address=p.address||info?.address||'';
  if(Number.isFinite(p.lat)&&Number.isFinite(p.lng))
-  return p.address? p:{...p,address};
- const key=addressQueryText(address);
- const cached=key&&addressCache[key];
+  return p.address?p:{...p,address};
+ // Preloaded public-area positions make literary pins available without
+ // waiting for a network request or tapping a card. They are NOT GPS sites.
+ const ref=(p.type==='literature'||p.relatedTypes?.includes('literature'))&&p.referenceArea;
+ if(Number.isFinite(ref?.lat)&&Number.isFinite(ref?.lng))
+  return {...p,address,lat:ref.lat,lng:ref.lng,verified:false,
+   locationSource:'literary-reference',locationPrecision:'broad'};
+ // API-resolved addresses may be more specific than the stored area seed.
+ const key=addressQueryText(address),cached=key&&addressCache[key];
  if(cached&&Number.isFinite(cached.lat)&&Number.isFinite(cached.lng))
   return {...p,address,lat:cached.lat,lng:cached.lng,verified:false,
-   locationSource:'address-catalog',locationPrecision:info.approximate?'broad':'address'};
- // Many existing literary inscriptions have a curated surrounding-area center
- // but no exact monument coordinate. Display that reference immediately,
- // without depending on a geocoder API, and do not award GPS encounters.
- if((p.type==='literature'||p.relatedTypes?.includes('literature'))&&
-    Number.isFinite(p.referenceArea?.lat)&&Number.isFinite(p.referenceArea?.lng))
-  return {...p,address,lat:p.referenceArea.lat,lng:p.referenceArea.lng,
-   verified:false,locationSource:'literary-reference',locationPrecision:'broad'};
- return p.address?p:{...p,address}
+   locationSource:'address-catalog',locationPrecision:info?.approximate?'broad':'address'};
+ const seed=LITERARY_SEEDS.get(p.id);
+ if(seed&&Number.isFinite(seed.lat)&&Number.isFinite(seed.lng))
+  return {...p,address,lat:seed.lat,lng:seed.lng,verified:false,
+   locationSource:'literary-reference',locationPrecision:'broad',
+   referenceLabel:seed.label,referenceSourceUrl:seed.sourceUrl};
+ return info&&!p.address?{...p,address}:p
 }
 async function resolveRegisteredAddress(place,{retry=false}={}){
  const entry=ADDRESS_CATALOG.get(place.id);
@@ -91,7 +95,10 @@ async function enrichRegisteredLocations(){
    Number(b.id?.startsWith('lit04:'))-Number(a.id?.startsWith('lit04:')));
   for(const place of pending){
    if(areaAtStart!==state.area||addressNetworkUnavailable)break;
-   if(Number.isFinite(place.lat)&&Number.isFinite(place.lng))continue;
+   // Seed pins are usable immediately. Keep refining their positions
+   // in the background with the registered address when GSI is available.
+   if(Number.isFinite(place.lat)&&Number.isFinite(place.lng)&&
+      !(place.locationSource==='literary-reference'&&LITERARY_SEEDS.has(place.id)))continue;
    const address=ADDRESS_CATALOG.get(place.id)?.address;
    const query=addressQueryText(address);
    if(!query||addressAttempted.has(query))continue;
@@ -787,7 +794,9 @@ function renderList(){
    (literaryMapGroups().length?`「${search}」の文学作品が地図で見つかりました。`:
     `「${search}」に一致する地点はありません。`)):
   (list.length?`${list.length}か所`:'この条件の場所はありません。エリアやジャンルを変えてください。');
- drawMarkers(list)
+ // Pins represent *all* mapped places in the viewport, not the 50-card
+ // reading limit of the result list.
+ drawMarkers()
 }
 const JOURNAL_STATES=[
  {id:'seen',label:'みつけた',date:'seenAt'},
@@ -858,9 +867,14 @@ function openLiteraryReferenceGroup(spots){
  }));
  $('literaryMapDialog').showModal()
 }
-function drawMarkers(list){
+function drawMarkers(){
  if(!state.map||!window.L)return;
  state.markers.clearLayers();
+ const bounds=state.map.getBounds();
+ const searching=!!state.query.trim();
+ const list=state.places.filter(p=>matches(p)&&
+  Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&
+  (searching||!bounds?.isValid()||bounds.contains([p.lat,p.lng])));
  const approximateGroups=new Map();
  for(const p of list){
   if(p.lat==null||p.lng==null)continue;
@@ -875,7 +889,11 @@ function drawMarkers(list){
   marker.on('click',()=>openDetail(p));
   marker.addTo(state.markers)
  }
- for(const spots of approximateGroups.values()){
+ for(const originals of approximateGroups.values()){
+  // A broad "literary monuments in the area" umbrella record should not
+  // inflate the count when its five individual inscriptions are also listed.
+  const individual=originals.filter(p=>p.group!=='literary-cluster');
+  const spots=individual.length?individual:originals;
   const first=spots[0],cluster=spots.length>1;
   const icon=cluster?
    L.divIcon({className:'literary-map-leaflet',iconSize:[48,40],iconAnchor:[1,41],
@@ -1089,12 +1107,21 @@ function mapInit(){
 async function viewOnMap(){
  let p=state.selected;
  if(!p)return;
- if(p.lat==null||p.lng==null){
-  toast('登録住所から地図の位置を調べています');
+ // Always resolve against current registered dataset, not an older journal
+ // snapshot. The literary reference coordinate is available *before* a tap.
+ const current=currentGuides().find(item=>item.id===p.id);
+ if(current&&(!Number.isFinite(p.lat)||!Number.isFinite(p.lng)||
+     p.locationSource==='literary-reference'))p=withCatalog(current);
+ else p=withCatalog(p);
+ if(!Number.isFinite(p.lat)||!Number.isFinite(p.lng)){
+  // A late API lookup is for genuinely unlocated non-literary addresses only.
   p=await resolveRegisteredAddress(p,{retry:true});
-  if(!p){toast('住所の代表位置を取得できませんでした');return}
-  state.selected=p
+  if(!p||!Number.isFinite(p.lat)||!Number.isFinite(p.lng)){
+   toast('この地点の地図位置はまだ登録されていません');
+   return
+  }
  }
+ state.selected=p;
  $('detail').close();
  if(state.tab==='journal')showTab('places');
  if(!state.map){window.open(googleMapsLink(p),'_blank','noopener');return}
@@ -1145,7 +1172,7 @@ function openDetail(p){
  const sourceURL=p.source==='tottori-city-poi'?HOSAI_DATASET:curated||p.source==='reference'||p.source==='guide'||p.source==='official-tourism'||p.source==='gsi-search'||p.source==='railway-search'?p.url:null;
  const safeSource=sourceURL&&/^https:\/\//.test(sourceURL)?'<a class="detail-source" href="'+q(sourceURL)+'" target="_blank" rel="noopener noreferrer">'+sourceLabel+' ↗</a>':'<small class="detail-source">'+sourceLabel+'</small>';
  $('detailTags').innerHTML=badgesFor(p,row)+safeSource+(p.locationSource==='literary-reference'?
-  '<small class="detail-source">参考地点（地図表示のみ・自動すれ違い対象外）</small>':
+  '<small class="detail-source">参考地点（'+q(p.referenceLabel||'広域の代表位置')+'・自動すれ違い対象外）</small>':
   p.verified===false?'<small class="detail-source">周辺の代表位置（近隣すれ違い判定）</small>':'');
  // Address display works without any position-confirmation / GPS opt-in button.
  $('viewOnMapBtn').disabled=(p.lat==null||p.lng==null)&&!addressQueryText(ADDRESS_CATALOG.get(p.id)?.address||p.address);
@@ -1158,7 +1185,7 @@ function openDetail(p){
 function recordClick(kind){const p=state.selected;if(!p)return;eventFor(p,kind);toast(kind==='visited'?'訪問を旅帖に追加しました':'すれ違いを記録しました');$('detail').close();renderList();if(state.tab==='journal')renderJournal()}
 function isTottori(p){return p.lat>=35.0&&p.lat<=35.65&&p.lng>=133.11&&p.lng<=134.58}
 function locationFailure(err){status(err?.code===1?'位置情報が拒否されました':'現在地を取得できません');toast('位置情報の設定をご確認ください')}
-function onLocation(pos,recenter){const p={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:pos.coords.accuracy};const inPref=isTottori(p);state.gps=inPref?p:null;status(inPref?`現在地を取得 · 精度 約${Math.round(p.accuracy)}m`:'鳥取県外 · 鳥取のスポットを表示',inPref);if(recenter){if(!inPref){toast('現在地は鳥取県外です。鳥取のエリアを表示します');renderList();return}state.center={lat:p.lat,lng:p.lng};const ks=Object.keys(AREAS);state.area=ks.reduce((a,b)=>meters(p,AREAS[b])<meters(p,AREAS[a])?b:a);$('area').value=state.area;updateMap();fetchPlaces()}else{drawMarkers(filtered());if(!inPref)return;checkNear();if(state.tracking&&(!state.lastLoc||meters(p,state.lastLoc)>300)&&Date.now()-state.lastFetch>60000){state.center={lat:p.lat,lng:p.lng};state.lastLoc=p;updateMap();fetchPlaces()}}}
+function onLocation(pos,recenter){const p={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:pos.coords.accuracy};const inPref=isTottori(p);state.gps=inPref?p:null;status(inPref?`現在地を取得 · 精度 約${Math.round(p.accuracy)}m`:'鳥取県外 · 鳥取のスポットを表示',inPref);if(recenter){if(!inPref){toast('現在地は鳥取県外です。鳥取のエリアを表示します');renderList();return}state.center={lat:p.lat,lng:p.lng};const ks=Object.keys(AREAS);state.area=ks.reduce((a,b)=>meters(p,AREAS[b])<meters(p,AREAS[a])?b:a);$('area').value=state.area;updateMap();fetchPlaces()}else{drawMarkers();if(!inPref)return;checkNear();if(state.tracking&&(!state.lastLoc||meters(p,state.lastLoc)>300)&&Date.now()-state.lastFetch>60000){state.center={lat:p.lat,lng:p.lng};state.lastLoc=p;updateMap();fetchPlaces()}}}
 function locate(){if(!navigator.geolocation){toast('この端末では現在地を取得できません');return}status('現在地を確認中…');navigator.geolocation.getCurrentPosition(p=>onLocation(p,true),locationFailure,{enableHighAccuracy:true,timeout:12000,maximumAge:15000})}
 function canAutoDetect(p){
  if(!p||!Number.isFinite(p.lat)||!Number.isFinite(p.lng))return false;
