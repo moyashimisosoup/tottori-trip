@@ -1,7 +1,6 @@
-/* APP-025 Literary/people research batch 01. Sources and grouping in docs/LITERARY_BATCH_01.md.
-   Reference-area coordinates below are used ONLY to select nearby listing groups.
-   Every item's lat/lng is null until its specific public point is verified.
-   Do not use referenceArea for map pins or automatic proximity awards. */
+/* APP-025 Literary/people research batch 01. See docs/LITERARY_BATCH_01.md.
+   referenceArea is only a nearby-list discovery hint, never a map pin.
+   Exact GPS point is unknown for each record and is deliberately null. */
 window.TOTTORI_LITERARY_BATCH_01=[
   {
     "id": "lit01:mochigase:01",
@@ -28,16 +27,15 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 松尾芭蕉句碑"
   },
   {
     "id": "lit01:mochigase:02",
     "name": "茶揉み唄の碑",
     "area": "tottori",
     "type": "literature",
-    "relatedTypes": [
-      "people"
-    ],
+    "relatedTypes": [],
     "lat": null,
     "lng": null,
     "referenceArea": {
@@ -55,7 +53,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 茶揉み唄の碑"
   },
   {
     "id": "lit01:mochigase:03",
@@ -82,7 +81,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 田中寒樓句碑"
   },
   {
     "id": "lit01:mochigase:04",
@@ -109,7 +109,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 卜阿歌碑"
   },
   {
     "id": "lit01:mochigase:05",
@@ -136,16 +137,15 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 在原行平歌碑"
   },
   {
     "id": "lit01:mochigase:06",
     "name": "はねそ音頭の碑①",
     "area": "tottori",
     "type": "literature",
-    "relatedTypes": [
-      "people"
-    ],
+    "relatedTypes": [],
     "lat": null,
     "lng": null,
     "referenceArea": {
@@ -163,7 +163,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 はねそ音頭の碑①"
   },
   {
     "id": "lit01:mochigase:07",
@@ -190,7 +191,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 原東坡歌碑"
   },
   {
     "id": "lit01:mochigase:08",
@@ -217,16 +219,15 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 日因上人句碑"
   },
   {
     "id": "lit01:mochigase:09",
     "name": "はねそ音頭の碑②",
     "area": "tottori",
     "type": "literature",
-    "relatedTypes": [
-      "people"
-    ],
+    "relatedTypes": [],
     "lat": null,
     "lng": null,
     "referenceArea": {
@@ -244,7 +245,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 はねそ音頭の碑②"
   },
   {
     "id": "lit01:mochigase:10",
@@ -271,7 +273,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 山崎秀穂歌碑"
   },
   {
     "id": "lit01:mochigase:11",
@@ -298,16 +301,15 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 岸本正一歌碑"
   },
   {
     "id": "lit01:mochigase:12",
     "name": "三角山神社献句碑",
     "area": "tottori",
     "type": "literature",
-    "relatedTypes": [
-      "people"
-    ],
+    "relatedTypes": [],
     "lat": null,
     "lng": null,
     "referenceArea": {
@@ -325,7 +327,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 三角山神社献句碑"
   },
   {
     "id": "lit01:mochigase:13",
@@ -352,7 +355,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 谷口雲崖句碑①"
   },
   {
     "id": "lit01:mochigase:14",
@@ -379,7 +383,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 村尾草樹句碑"
   },
   {
     "id": "lit01:mochigase:15",
@@ -406,7 +411,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 種田山頭火句碑"
   },
   {
     "id": "lit01:mochigase:16",
@@ -433,7 +439,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 青車・有隣句碑"
   },
   {
     "id": "lit01:mochigase:17",
@@ -460,7 +467,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 谷口雲崖句碑②"
   },
   {
     "id": "lit01:mochigase:18",
@@ -487,7 +495,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 国丘翠歌碑"
   },
   {
     "id": "lit01:mochigase:19",
@@ -514,7 +523,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 山口誓子句碑"
   },
   {
     "id": "lit01:mochigase:20",
@@ -541,7 +551,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 吉田破笠句碑"
   },
   {
     "id": "lit01:mochigase:21",
@@ -568,7 +579,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 水原春郎句碑"
   },
   {
     "id": "lit01:mochigase:22",
@@ -595,7 +607,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 八百谷杜仙句碑"
   },
   {
     "id": "lit01:mochigase:23",
@@ -622,7 +635,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 黛まどか句碑"
   },
   {
     "id": "lit01:mochigase:24",
@@ -649,7 +663,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市「用瀬 文学の小径」"
     ],
-    "group": "用瀬文学の小径"
+    "group": "用瀬文学の小径",
+    "mapQuery": "鳥取市用瀬町 西尾憲治歌碑"
   },
   {
     "id": "lit01:dune:01",
@@ -676,7 +691,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市観光サイト「鳥取砂丘にある文人達の歌碑・句碑」"
     ],
-    "group": "砂丘文人碑"
+    "group": "砂丘文人碑",
+    "mapQuery": "鳥取砂丘 有島武郎歌碑"
   },
   {
     "id": "lit01:dune:02",
@@ -703,7 +719,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市観光サイト「鳥取砂丘にある文人達の歌碑・句碑」"
     ],
-    "group": "砂丘文人碑"
+    "group": "砂丘文人碑",
+    "mapQuery": "鳥取砂丘 与謝野晶子歌碑"
   },
   {
     "id": "lit01:dune:03",
@@ -730,7 +747,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市観光サイト「鳥取砂丘にある文人達の歌碑・句碑」"
     ],
-    "group": "砂丘文人碑"
+    "group": "砂丘文人碑",
+    "mapQuery": "鳥取砂丘 枝野登代秋歌碑"
   },
   {
     "id": "lit01:dune:04",
@@ -757,7 +775,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市観光サイト「鳥取砂丘にある文人達の歌碑・句碑」"
     ],
-    "group": "砂丘文人碑"
+    "group": "砂丘文人碑",
+    "mapQuery": "鳥取砂丘 高浜虚子句碑"
   },
   {
     "id": "lit01:dune:05",
@@ -784,7 +803,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "鳥取市観光サイト「鳥取砂丘にある文人達の歌碑・句碑」"
     ],
-    "group": "砂丘文人碑"
+    "group": "砂丘文人碑",
+    "mapQuery": "鳥取砂丘 森川暁水句碑"
   },
   {
     "id": "lit01:other:01",
@@ -811,7 +831,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "https://www.nichinan-trip.jp/culture/i-yasushi/"
     ],
-    "group": "人物ゆかりの施設"
+    "group": "人物ゆかりの施設",
+    "mapQuery": "井上靖記念館 野分の館 日野郡日南町神福12-1"
   },
   {
     "id": "lit01:other:02",
@@ -838,7 +859,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "https://www.pref.tottori.lg.jp/item/128056.htm"
     ],
-    "group": "人物ゆかりの施設"
+    "group": "人物ゆかりの施設",
+    "mapQuery": "松本清張文学碑（日南町矢戸） 日野郡日南町矢戸"
   },
   {
     "id": "lit01:other:03",
@@ -865,7 +887,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "https://www.yonago-navi.jp/yonago/city/sightseeing/hozyoji/"
     ],
-    "group": "人物ゆかりの施設"
+    "group": "人物ゆかりの施設",
+    "mapQuery": "生田春月墓碑（法城寺） 米子市博労町2丁目40"
   },
   {
     "id": "lit01:other:04",
@@ -892,7 +915,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "https://www.yonago-toshokan.jp/corner/tottori"
     ],
-    "group": "人物ゆかりの施設"
+    "group": "人物ゆかりの施設",
+    "mapQuery": "米子市立図書館（生田春月文庫） 米子市中町8"
   },
   {
     "id": "lit01:other:05",
@@ -919,7 +943,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "https://www.pref.tottori.lg.jp/304464.htm"
     ],
-    "group": "人物ゆかりの施設"
+    "group": "人物ゆかりの施設",
+    "mapQuery": "山陰伯耆国米子アジア博物館（井上靖記念館） 米子市大篠津町57"
   },
   {
     "id": "lit01:other:06",
@@ -944,7 +969,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "https://www.houki-town.jp/ueda/information/"
     ],
-    "group": "人物ゆかりの施設"
+    "group": "人物ゆかりの施設",
+    "mapQuery": "植田正治写真美術館 西伯郡伯耆町須村353-3"
   },
   {
     "id": "lit01:other:07",
@@ -969,7 +995,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "https://www.torican.jp/spot/detail_1041.html"
     ],
-    "group": "人物ゆかりの施設"
+    "group": "人物ゆかりの施設",
+    "mapQuery": "わらべ館（岡野貞一・田村虎蔵） 鳥取市西町3-202"
   },
   {
     "id": "lit01:other:08",
@@ -996,7 +1023,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "https://www.torican.jp/spot/detail_1447.html"
     ],
-    "group": "人物ゆかりの施設"
+    "group": "人物ゆかりの施設",
+    "mapQuery": "尾崎翠生誕地（岩井・西方寺） 岩美郡岩美町岩井"
   },
   {
     "id": "lit01:other:09",
@@ -1021,7 +1049,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "https://chizukankou-kurashiya.jp/highlight/places/eigakinenkan/"
     ],
-    "group": "人物ゆかりの施設"
+    "group": "人物ゆかりの施設",
+    "mapQuery": "西河克己映画記念館 八頭郡智頭町智頭545"
   },
   {
     "id": "lit01:other:10",
@@ -1046,7 +1075,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "https://www.pref.tottori.lg.jp/manyo/"
     ],
-    "group": "人物ゆかりの施設"
+    "group": "人物ゆかりの施設",
+    "mapQuery": "倉吉博物館（前田寛治・菅楯彦） 倉吉市仲ノ町3445-8"
   },
   {
     "id": "lit01:other:11",
@@ -1071,7 +1101,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "https://www.e-hokuei.net/site/shougaigakushu/"
     ],
-    "group": "人物ゆかりの施設"
+    "group": "人物ゆかりの施設",
+    "mapQuery": "北栄みらい伝承館（前田寛治） 東伯郡北栄町田井47-1"
   },
   {
     "id": "lit01:other:12",
@@ -1098,7 +1129,8 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "https://www.pref.tottori.lg.jp/manyo/"
     ],
-    "group": "人物ゆかりの施設"
+    "group": "人物ゆかりの施設",
+    "mapQuery": "粟嶋神社（万葉歌碑） 米子市彦名町1404"
   },
   {
     "id": "lit01:other:13",
@@ -1125,6 +1157,7 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "attributions": [
       "https://www.pref.tottori.lg.jp/item/128056.htm"
     ],
-    "group": "人物ゆかりの施設"
+    "group": "人物ゆかりの施設",
+    "mapQuery": "日南町美術館（井上靖・松本清張） 日野郡日南町霞785"
   }
 ];
