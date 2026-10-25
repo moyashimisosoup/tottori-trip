@@ -270,6 +270,7 @@ const LITERARY_BATCH_01=Array.isArray(window.TOTTORI_LITERARY_BATCH_01)?window.T
 const LITERARY_PLACES_03=Array.isArray(window.TOTTORI_LITERARY_PLACES_03)?window.TOTTORI_LITERARY_PLACES_03:[];
 const LITERARY_SITES_04=Array.isArray(window.TOTTORI_LITERARY_SITES_04)?window.TOTTORI_LITERARY_SITES_04:[];
 const LITERARY_WORKS_03=Array.isArray(window.TOTTORI_LITERARY_WORKS_03)?window.TOTTORI_LITERARY_WORKS_03:[];
+const LITERARY_MAP_05=window.TOTTORI_LITERARY_MAP_05||{links:[],anchors:[]};
 const OFFICIAL_LANDMARKS=Array.isArray(window.TOTTORI_OFFICIAL_LANDMARKS)?window.TOTTORI_OFFICIAL_LANDMARKS:[];
 function currentGuides(){
  // Text searches cover every registered area, independent of the map viewport.
@@ -394,6 +395,19 @@ function focusSearchResults({silent=false}={}){
  }
  const places=filtered().filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng));
  if(!places.length){
+  const books=literaryMapGroups();
+  if(books.length){
+   if(!state.searchOriginalView){
+    const pos=state.map.getCenter();
+    state.searchOriginalView={lat:pos.lat,lng:pos.lng,zoom:state.map.getZoom()}
+   }
+   state.searchMapActive=true;
+   const coords=books.map(g=>[g.lat,g.lng]);
+   if(coords.length===1)state.map.setView(coords[0],14,{animate:false});
+   else state.map.fitBounds(coords,{padding:[36,36],maxZoom:14,animate:false});
+   refreshMapSize(80);
+   return books.reduce((n,g)=>n+g.works.length,0)
+  }
   if(!silent&&filtered().length)toast('座標未確認の候補は一覧に表示しています');
   return 0
  }
@@ -646,6 +660,84 @@ function literaryWorkMatches(work){
  const hay=normalizedSearch([work.title,work.author,work.place].join(' '));
  return term.split(/\s+/).every(part=>hay.includes(part))
 }
+
+/* A book is not an extra POI: no ID or journal entry is created for a book. */
+function literaryMapGroups(){
+ const term=normalizedSearch(state.query);
+ const works=LITERARY_WORKS_03.filter(literaryWorkMatches);
+ if(!(state.filter==='literature'||(term&&works.length)))return [];
+ const matches=new Map(works.map(w=>[w.id,w]));
+ const fallback=new Map(LITERARY_MAP_05.anchors.map(a=>[a.id,a]));
+ const mapped=[...GUIDES,...CULTURE_SPOTS,...LITERARY_BATCH_01,...LITERARY_PLACES_03,
+  ...LITERARY_SITES_04,...OFFICIAL_LANDMARKS,...HOSAI_MONUMENTS].map(withCatalog);
+ const places=new Map(mapped.map(p=>[p.id,p]));
+ const groups=new Map();
+ for(const link of LITERARY_MAP_05.links){
+  const work=matches.get(link.workId);
+  if(!work)continue;
+  const place=places.get(link.anchorId),region=fallback.get(link.anchorId);
+  const exactEnough=place&&Number.isFinite(place.lat)&&Number.isFinite(place.lng);
+  const anchor=exactEnough?place:region;
+  if(!anchor||!Number.isFinite(anchor.lat)||!Number.isFinite(anchor.lng))continue;
+  if(!groups.has(link.anchorId)){
+   groups.set(link.anchorId,{
+    id:link.anchorId,lat:anchor.lat,lng:anchor.lng,
+    name:exactEnough?place.name:region.name,
+    note:exactEnough?'登録地点の代表座標。作中の場面の位置を特定したものではありません。':region.note,
+    sourceUrl:exactEnough?place.url:region.sourceUrl,place:place||null,
+    works:[]
+   })
+  }
+  groups.get(link.anchorId).works.push(work)
+ }
+ return [...groups.values()]
+}
+function literaryMapGroupForWork(workId){
+ return literaryMapGroups().find(g=>g.works.some(w=>w.id===workId))
+}
+function openLiteraryMapGroup(group,selectedWorkId=''){
+ $('literaryMapTitle').textContent=group.name+' · '+group.works.length+'作品';
+ $('literaryMapNote').textContent='登場地・作家ゆかりの地域の目安です。'+group.note;
+ $('literaryMapList').replaceChildren(...group.works.map(w=>{
+  const section=document.createElement('section');section.className='literary-map-work';
+  if(w.id===selectedWorkId)section.classList.add('selected');
+  const title=document.createElement('strong');title.textContent=w.title;
+  const meta=document.createElement('p');meta.textContent=w.author+' · 関連地：'+w.place;
+  const buttons=document.createElement('div');buttons.className='literary-work-actions';
+  const source=document.createElement('a');source.href=w.sourceUrl;
+  source.target='_blank';source.rel='noopener noreferrer';source.textContent='資料を開く ↗';
+  buttons.appendChild(source);
+  if(group.place){
+   const b=document.createElement('button');b.type='button';b.textContent='関連地点の詳細';
+   b.addEventListener('click',()=>{$('literaryMapDialog').close();openDetail(group.place)});
+   buttons.appendChild(b)
+  }
+  section.append(title,meta,buttons);return section
+ }));
+ $('literaryMapDialog').showModal()
+}
+function focusLiteraryWork(workId){
+ const group=literaryMapGroupForWork(workId);
+ if(!group){toast('地図に関連地を表示できません');return}
+ if(!state.map){toast('地図が読み込めません');return}
+ if(state.query&&!state.searchOriginalView){
+  const pos=state.map.getCenter();
+  state.searchOriginalView={lat:pos.lat,lng:pos.lng,zoom:state.map.getZoom()}
+ }
+ state.map.setView([group.lat,group.lng],Math.max(14,state.map.getZoom()),{animate:false});
+ document.querySelector('.map-wrap').scrollIntoView({behavior:'smooth',block:'center'});
+ refreshMapSize(100);
+ openLiteraryMapGroup(group,workId)
+}
+function renderLiteraryMapPins(){
+ if(!state.map||!window.L)return;
+ for(const group of literaryMapGroups()){
+  const icon=L.divIcon({className:'literary-map-leaflet',iconSize:[48,40],iconAnchor:[1,41],
+   html:'<div class="literary-map-pin" title="'+q(group.name)+'"><span class="pixel-art icon-book" aria-hidden="true"></span><b>'+group.works.length+'</b></div>'});
+  L.marker([group.lat,group.lng],{icon,zIndexOffset:1300})
+   .on('click',()=>openLiteraryMapGroup(group)).addTo(state.markers)
+ }
+}
 function renderLiteraryWorks(){
  const pane=$('literaryWorksSection');
  const works=LITERARY_WORKS_03.filter(literaryWorkMatches);
@@ -661,6 +753,11 @@ function renderLiteraryWorks(){
   const actions=document.createElement('div');actions.className='literary-work-actions';
   const src=document.createElement('a');src.href=work.sourceUrl;src.target='_blank';src.rel='noopener noreferrer';
   src.textContent='県立図書館の資料 ↗';
+  if(literaryMapGroupForWork(work.id)){
+   const mapButton=document.createElement('button');mapButton.type='button';
+   mapButton.textContent='⌖ 地図で見る';
+   mapButton.addEventListener('click',()=>focusLiteraryWork(work.id));actions.appendChild(mapButton)
+  }
   const place=state.places.find(p=>p.id===work.targetId);
   if(place){
    const b=document.createElement('button');b.type='button';b.textContent='関連地点を開く';
@@ -680,7 +777,8 @@ function renderList(){
  renderLiteraryWorks();
  if(!state.loading)$('message').textContent=search?
   (list.length||geo?`「${search}」の検索結果 ${list.length+(geo?1:0)}件（地図外の登録地点・地図検索を含む）`:
-   `「${search}」に一致する地点はありません。`):
+   (literaryMapGroups().length?`「${search}」の文学作品が地図で見つかりました。`:
+    `「${search}」に一致する地点はありません。`)):
   (list.length?`${list.length}か所`:'この条件の場所はありません。エリアやジャンルを変えてください。');
  drawMarkers(list)
 }
@@ -755,6 +853,7 @@ function drawMarkers(list){
   L.marker([p.lat,p.lng],{icon,zIndexOffset:1600})
    .on('click',()=>openDetail(place)).addTo(state.markers)
  }
+ renderLiteraryMapPins();
  if(state.gps){
   // Current GPS position is distinct in both shape and color from all categories.
   const gpsIcon=L.divIcon({
@@ -1046,6 +1145,14 @@ function checkNear(){
   if(state.tab==='journal')renderJournal()}
 }
 function toggleTracking(){if(state.tracking){navigator.geolocation.clearWatch(state.watch);state.watch=null;state.tracking=false;$('trackBtn').textContent='◇ すれ違い OFF';$('trackBtn').setAttribute('aria-pressed','false');return}if(!navigator.geolocation){toast('位置情報が使えません');return}state.tracking=true;$('trackBtn').textContent='◆ すれ違い ON';$('trackBtn').setAttribute('aria-pressed','true');state.watch=navigator.geolocation.watchPosition(p=>onLocation(p,false),err=>{locationFailure(err);toggleTracking()},{enableHighAccuracy:true,maximumAge:10000,timeout:20000})}
+function focusLiteraryRegion(){
+ if(!state.map||state.query.trim()||state.filter!=='literature')return;
+ const groups=literaryMapGroups();
+ if(!groups.length)return;
+ const coords=groups.map(g=>[g.lat,g.lng]);
+ if(coords.length===1)state.map.setView(coords[0],13,{animate:false});
+ else state.map.fitBounds(coords,{padding:[45,45],maxZoom:13,animate:false})
+}
 function chooseFilter(f){
  if(f!=='all'&&!TYPES[f])return;
  state.filter=f;
@@ -1055,9 +1162,10 @@ function chooseFilter(f){
   b.setAttribute('aria-pressed',String(on))
  }
  if(!state.results.length||!state.lastFetch)fetchPlaces();
- else renderList()
+ else renderList();
+ if(f==='literature')focusLiteraryRegion()
 }
-function resetArea(){const a=AREAS[$('area').value];state.area=$('area').value;state.center={lat:a.lat,lng:a.lng};state.gps=null;status(a.name+'の地図 · 現在地未取得');state.query='';$('search').value='';state.lastQuery='';state.searchMapActive=false;state.searchOriginalView=null;clearGeocode();updateMap();fetchPlaces()}
+function resetArea(){const a=AREAS[$('area').value];state.area=$('area').value;state.center={lat:a.lat,lng:a.lng};state.gps=null;status(a.name+'の地図 · 現在地未取得');state.query='';$('search').value='';state.lastQuery='';state.searchMapActive=false;state.searchOriginalView=null;clearGeocode();updateMap();fetchPlaces();if(state.filter==='literature')focusLiteraryRegion()}
 function onSearchInput(){
  const previous=state.query;
  state.query=$('search').value.trim();
@@ -1087,7 +1195,8 @@ function doSearch(ev){
  fetchPlaces(state.query,!!state.query);
  if(state.query){
   focusSearchResults({silent:true});
-  geocodeSubmittedKeyword(state.query);
+  // Books matched by title or author should not be mistaken for street addresses.
+  if(!LITERARY_WORKS_03.some(w=>literaryWorkMatches(w)))geocodeSubmittedKeyword(state.query);
   document.querySelector('.map-wrap').scrollIntoView({behavior:'smooth',block:'center'});
  }else{
   resetSearchMap();
