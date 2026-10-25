@@ -95,7 +95,10 @@ async function enrichRegisteredLocations(){
    Number(b.id?.startsWith('lit04:'))-Number(a.id?.startsWith('lit04:')));
   for(const place of pending){
    if(areaAtStart!==state.area||addressNetworkUnavailable)break;
-   if(Number.isFinite(place.lat)&&Number.isFinite(place.lng))continue;
+   // Seed pins are usable immediately. Keep refining their positions
+   // in the background with the registered address when GSI is available.
+   if(Number.isFinite(place.lat)&&Number.isFinite(place.lng)&&
+      !(place.locationSource==='literary-reference'&&LITERARY_SEEDS.has(place.id)))continue;
    const address=ADDRESS_CATALOG.get(place.id)?.address;
    const query=addressQueryText(address);
    if(!query||addressAttempted.has(query))continue;
