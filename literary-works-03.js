@@ -582,3 +582,56 @@ window.TOTTORI_LITERARY_WORKS_03=[
     "relation": "登場地・関連地（主舞台とは限りません）"
   }
 ];
+window.TOTTORI_LITERARY_PLACES_03=[
+  {
+    "id": "lit03:site:01",
+    "name": "生田長江の碑",
+    "area": "yonago",
+    "address": "日野郡日野町根雨・延暦寺境内",
+    "type": "literature",
+    "relatedTypes": [
+      "people"
+    ],
+    "lat": null,
+    "lng": null,
+    "verified": false,
+    "source": "reference",
+    "url": "https://www.town.hino.tottori.jp/1285.htm",
+    "category": "literature",
+    "note": "日野町出身の評論家・翻訳家、生田長江の顕彰碑。根雨駅近くの延暦寺境内にある。所在地は地区表示で、碑の正確な座標は未確認。"
+  },
+  {
+    "id": "lit03:site:02",
+    "name": "池田亀鑑文学碑（旧石見東小学校）",
+    "area": "yonago",
+    "address": "日野郡日南町神戸上・旧石見東小学校",
+    "type": "literature",
+    "relatedTypes": [
+      "people"
+    ],
+    "lat": null,
+    "lng": null,
+    "verified": false,
+    "source": "reference",
+    "url": "https://nichinan-cho.jp/100th-station/kamiiwami/",
+    "category": "literature",
+    "note": "『源氏物語』研究で知られる国文学者・池田亀鑑を顕彰する文学碑。旧石見東小学校の所在地で紹介されている。"
+  },
+  {
+    "id": "lit03:site:03",
+    "name": "大山自然歴史館（文学碑めぐりの案内）",
+    "area": "yonago",
+    "address": "西伯郡大山町大山43",
+    "type": "literature",
+    "relatedTypes": [
+      "sight"
+    ],
+    "lat": null,
+    "lng": null,
+    "verified": false,
+    "source": "reference",
+    "url": "https://daisen-museum.jp/schedule/event/69/",
+    "category": "literature",
+    "note": "大山寺参道などの文学碑を学ぶ散策イベントの案内拠点。文学碑そのものとは異なる施設。開催情報や開館状況は公式サイトで確認。"
+  }
+];
