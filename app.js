@@ -51,12 +51,12 @@ const CULTURE_SPOTS=[
  {name:'谷口ジロー『父の暦』ゆかりの鳥取',lat:null,lng:null,address:'鳥取市内（作品の舞台）',area:'tottori',type:'literature',relatedTypes:['people'],note:'鳥取市が舞台の作品。固定の訪問地点を指定できないため参考情報。',url:'https://www.pref.tottori.lg.jp/291428.htm',source:'reference',verified:false}
 ].map((p,i)=>({...p,id:'culture:'+i,verified:p.verified!==false,category:p.type,licenses:[],attributions:[p.url]}));
 const NIGHT_VENUES=[
- {name:'club PASHA',address:'鳥取市末広温泉町758 第二小熊ビル2F',area:'tottori',note:'キャバクラ。営業情報は店の公式サイトで確認。',url:'https://www.risouzu.com/'},
- {name:'PREMIUM PASHA CLUB',address:'鳥取市末広温泉町752-2 第一末広ビル',area:'tottori',note:'キャバクラ。営業情報は店の公式サイトで確認。',url:'https://www.risouzu.com/'},
+ {name:'club PASHA',lat:35.4948162,lng:134.2296148,address:'鳥取市末広温泉町758 第二小熊ビル2F',area:'tottori',note:'キャバクラ。営業情報は店の公式サイトで確認。',url:'https://www.risouzu.com/'},
+ {name:'PREMIUM PASHA CLUB',lat:35.4950245,lng:134.2294983,address:'鳥取市末広温泉町752-2 第一末広ビル',area:'tottori',note:'キャバクラ。営業情報は店の公式サイトで確認。',url:'https://www.risouzu.com/'},
  {name:'PINKY（ピンキー）',address:'鳥取市末広温泉町355-2 レインボービル6F',area:'tottori',note:'スナック。性風俗店ではなく夜の飲食店。',url:'https://town-night.jp/tottori/a_1176/shop/013315/map/'},
  {name:'club M',address:'米子市皆生温泉3丁目6-18',area:'yonago',note:'ソープランド。公開住所のみ確認済み。',url:'https://www.f-terminal.jp/tottori.html'},
  {name:'ソウルシャドウ',address:'米子市皆生温泉3丁目6-21',area:'yonago',note:'ソープランド。公開住所のみ確認済み。',url:'https://www.f-terminal.jp/tottori.html'}
-].map((p,i)=>({...p,id:'night:'+i,type:'adult',lat:null,lng:null,verified:false,source:'reference',category:'adult',licenses:[],attributions:[p.url]}));
+].map((p,i)=>({...p,id:'night:'+i,type:'adult',lat:p.lat??null,lng:p.lng??null,verified:p.lat!=null&&p.lng!=null,source:p.lat!=null?'curated':'reference',category:'adult',licenses:[],attributions:p.lat!=null?[p.url,'MapFan 公開施設地点']: [p.url]}));
 
 const $=id=>document.getElementById(id);
 const TYPES={sight:['✦','名所'],history:['▥','史跡'],literature:['本','文学'],people:['★','偉人'],food:['食','飲食'],adult:['夜','風俗'],other:['・','施設']};
