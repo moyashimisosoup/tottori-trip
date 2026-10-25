@@ -171,7 +171,7 @@ function badgesFor(p,row){
  const parts=[badgeHTML((TYPES[effectiveType(p)]||TYPES.other)[1],'type')];
  if(p.relatedTypes?.includes('people'))parts.push(badgeHTML('偉人','type'));
  const pos=positionBadge(p);
- parts.push(badgeHTML(pos,p.source==='guide'?'reference':'geo'));
+ parts.push(badgeHTML(pos,p.verified===false||p.lat==null||p.lng==null?'reference':'geo'));
  if(row?.visitedAt)parts.push(badgeHTML('訪問済','visited'));
  else if(row?.nearAt)parts.push(badgeHTML('すれ違い','near'));
  else if(row?.seenAt)parts.push(badgeHTML('発見','seen'));
