@@ -249,28 +249,34 @@ function knownPlaceSearch(keyword){
  return null
 }
 function geoPlace(p){
- const name=p.title||p.query||'検索した地点';
+ const base=p.basePlace||null;
+ const name=base?.name||p.title||p.query||'検索した地点';
  const lat=Number(p.lat),lng=Number(p.lng);
  const station=p.source==='railway';
+ const id=base?.id||(station&&normalizedSearch(name)==='鳥取駅'?
+  'search:railway:tottori':
+  'search:gsi:'+normalizedSearch(name)+':'+lat.toFixed(5)+','+lng.toFixed(5));
+ // Never downgrade a user-confirmed location when revisiting a search.
+ const existing=state.journal[id]?.place;
+ if(existing?.verified===true&&Number.isFinite(existing.lat)&&Number.isFinite(existing.lng))
+  return existing;
  return {
-  id:station&&normalizedSearch(name)==='鳥取駅'?'search:railway:tottori':
-   'search:gsi:'+normalizedSearch(name)+':'+lat.toFixed(5)+','+lng.toFixed(5),
-  name,lat,lng,address:station?'鳥取市東品治町111':name,
-  type:classify({name}),category:station?'railway_station':'unknown',
+  ...(base||{}),id,name,lat,lng,
+  address:base?.address||(station?'鳥取市東品治町111':p.title),
+  type:base?.type||classify({name}),category:base?.category||(station?'railway_station':'unknown'),
   source:station?'railway-search':'gsi-search',
+  originalSource:base?.source||null,
   verified:station,
   accuracyClass:station?'facility':'area',
   note:station?'JR鳥取駅の代表地点。GPSの位置には誤差があります。':
-   '国土地理院の地名・住所検索で得た代表地点です。町丁目などの代表点の場合もあるため、GPS自動判定には位置確認が必要です。',
-  url:p.sourceUrl||'https://maps.gsi.go.jp/',
-  attributions:[p.sourceUrl||'https://maps.gsi.go.jp/'],
-  licenses:[]
+   '地理院の地名・住所検索による代表位置です。町丁目などを代表する座標の場合もあるため、地図を確認してからGPS自動判定に使ってください。',
+  url:base?.url||p.sourceUrl||'https://maps.gsi.go.jp/',
+  attributions:[...new Set([...(base?.attributions||[]),p.sourceUrl||'https://maps.gsi.go.jp/'])],
+  licenses:base?.licenses||[]
  }
 }
 function geocodeResultCard(p){
  const place=geoPlace(p);
- const btn=fillPlaceCard(place,state.journal[place.id]);
- btn.classList.add('geocode-card');
  // A geocoded hit is a real candidate: open the normal details/journal controls.
  const direct=document.createElement('button');
  direct.className='place-card geocode-card';direct.type='button';
@@ -296,8 +302,15 @@ async function geocodeSubmittedKeyword(keyword){
   focusSearchResults({silent:true});
   return
  }
- const oldMatch=allPlaces().some(p=>p.lat!=null&&p.lng!=null&&normalizedSearch(p.name)===normalizedSearch(query));
+ const places=allPlaces();
+ const oldMatch=places.some(p=>p.lat!=null&&p.lng!=null&&normalizedSearch(p.name)===normalizedSearch(query));
  if(oldMatch)return; // Exact known point already focuses correctly.
+ // If an official spot has a fairly specific street address but not a GPS
+ // coordinate, retry that address when searching the name finds nothing.
+ const ref=places.find(p=>p.lat==null&&p.lng==null&&p.address&&
+  normalizedSearch(p.name)===normalizedSearch(query));
+ const preciseAddress=ref&&/(?:[0-9０-９]+番地?|[0-9０-９]+号|[0-9０-９]+[-－][0-9０-９]+|[一二三四五六七八九十0-9０-９]+丁目)/.test(ref.address)?
+  ref.address:null;
  try{
   let candidates=geoCache.get(query);
   if(!candidates){
@@ -307,6 +320,13 @@ async function geocodeSubmittedKeyword(keyword){
     const response=await fetch(GEO_SEARCH_URL+'?q='+encodeURIComponent(query),{signal:controller.signal});
     if(!response.ok)throw Error('GSI HTTP '+response.status);
     candidates=parseGsiCandidates(await response.json(),query);
+    if(!candidates.length&&preciseAddress){
+     const byAddress=await fetch(GEO_SEARCH_URL+'?q='+encodeURIComponent(preciseAddress),
+      {signal:controller.signal});
+     if(byAddress.ok)
+      candidates=parseGsiCandidates(await byAddress.json(),preciseAddress)
+       .map(candidate=>({...candidate,title:ref.name,basePlace:ref,matchedAddress:preciseAddress}))
+    }
     geoCache.set(query,candidates)
    }finally{clearTimeout(clock)}
   }
@@ -724,8 +744,8 @@ function openDetail(p){
  $('detailMeta').textContent=[where(p),prettyDist(p)].filter(Boolean).join(' · ');
  $('detailNote').textContent=p.note||'気になったら、旅帖に残しておきましょう。';
  const curated=String(p.id||'').startsWith('culture:')||String(p.id||'').startsWith('night:')||p.source==='curated';
- const sourceLabel=p.source==='tottori-city-poi'?'鳥取市オープンデータ':p.source==='official-tourism'?'とっとり旅（公式）':p.source==='guide'?'観光・施設資料':curated||p.source==='reference'?'公開資料':'OpenPOI API';
- const sourceURL=p.source==='tottori-city-poi'?HOSAI_DATASET:curated||p.source==='reference'||p.source==='guide'||p.source==='official-tourism'?p.url:null;
+ const sourceLabel=p.source==='tottori-city-poi'?'鳥取市オープンデータ':p.source==='official-tourism'?'とっとり旅（公式）':p.source==='guide'?'観光・施設資料':p.source==='gsi-search'?'国土地理院・地名住所検索':p.source==='railway-search'?'駅位置資料':curated||p.source==='reference'?'公開資料':'OpenPOI API';
+ const sourceURL=p.source==='tottori-city-poi'?HOSAI_DATASET:curated||p.source==='reference'||p.source==='guide'||p.source==='official-tourism'||p.source==='gsi-search'||p.source==='railway-search'?p.url:null;
  const safeSource=sourceURL&&/^https:\/\//.test(sourceURL)?'<a class="detail-source" href="'+q(sourceURL)+'" target="_blank" rel="noopener noreferrer">'+sourceLabel+' ↗</a>':'<small class="detail-source">'+sourceLabel+'</small>';
  $('detailTags').innerHTML=badgesFor(p,row)+safeSource+(p.verified===false?'<small class="detail-source">参考位置のため自動判定は保留</small>':'');
  const confirm=$('confirmPositionBtn');
