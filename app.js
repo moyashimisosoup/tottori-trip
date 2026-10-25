@@ -65,7 +65,7 @@ const initial=()=>{
   return obj
  }catch{return {}}
 };
-const state={area:'tottori',center:AREAS.tottori,filter:'all',query:'',places:[],results:[],journal:initial(),tab:'places',journalFilter:'all',journalStatus:'all',selected:null,map:null,markers:null,gps:null,watch:null,tracking:false,lastFetch:0,lastLoc:null,toastTimer:0,loading:false};
+const state={area:'tottori',center:AREAS.tottori,filter:'all',query:'',places:[],results:[],journal:initial(),tab:'places',journalFilter:'all',journalStatus:'all',selected:null,map:null,markers:null,gps:null,watch:null,tracking:false,lastFetch:0,lastLoc:null,toastTimer:0,loading:false,searchMapActive:false,searchOriginalView:null};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state.journal))}catch{toast('保存できません。空き容量をご確認ください')}}
 function idOf(p){return p.id||'poi:'+([p.source||'',p.name||'',Number(p.lat).toFixed(5),Number(p.lng).toFixed(5)].join('|'))}
 function normalize(raw){if(!raw||!raw.name)return null;const lat=raw.lat===''||raw.lat==null?null:Number(raw.lat);const lng=raw.lng===''||raw.lng==null?null:Number(raw.lng);if(lat!==null&&(!Number.isFinite(lat)||lat < -90||lat>90))return null;if(lng!==null&&(!Number.isFinite(lng)||lng< -180||lng>180))return null;
@@ -188,6 +188,33 @@ function searchVisibleMap(){
  }
  $('searchHereBtn').hidden=true;
  fetchPlaces(state.query)
+}
+/** Focus the *actual geocoded search matches*; never invent a position for a reference. */
+function focusSearchResults({silent=false}={}){
+ if(!state.map||!state.query.trim())return 0;
+ const places=filtered().filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng));
+ if(!places.length){
+  if(!silent&&filtered().length)toast('座標未確認の候補は一覧に表示しています');
+  return 0
+ }
+ if(!state.searchOriginalView){
+  const center=state.map.getCenter();
+  state.searchOriginalView={lat:center.lat,lng:center.lng,zoom:state.map.getZoom()}
+ }
+ state.searchMapActive=true;
+ const coords=places.map(p=>[p.lat,p.lng]);
+ if(coords.length===1)state.map.setView(coords[0],15,{animate:false});
+ else state.map.fitBounds(coords,{padding:[36,36],maxZoom:15,animate:false});
+ mapStamp();
+ refreshMapSize(80);
+ return coords.length
+}
+function resetSearchMap(){
+ const old=state.searchOriginalView;
+ state.searchMapActive=false;
+ state.searchOriginalView=null;
+ if(old&&state.map)state.map.setView([old.lat,old.lng],old.zoom,{animate:false});
+ mapStamp()
 }
 function badgeHTML(label,kind){return '<span class="badge badge-'+kind+'">'+q(label)+'</span>'}
 function positionBadge(p){return p.lat==null||p.lng==null?(p.source==='official-tourism'?'所在地資料のみ':p.address?'住所のみ':'位置なし'):p.verified===false?'概略位置':p.source==='tottori-city-poi'?'公式座標':'位置あり'}
@@ -367,7 +394,7 @@ function refreshMapSize(delay=80){
  mapResizeTimer=setTimeout(()=>{if(state.map){state.map.invalidateSize({pan:false,animate:false});inspectMapRendering()}},delay);
 }
 function mapStamp(label=''){
- const name=AREAS[state.area]?.name||'現在地';
+ const name=state.searchMapActive?'検索結果':AREAS[state.area]?.name||'現在地';
  $('mapStamp').textContent=name+' · '+(label||MAP_PROVIDERS[mapProvider].label);
 }
 function googleMapsLink(p){
@@ -547,7 +574,7 @@ function viewOnMap(){
 }
 function updateMap(){const c=state.center;mapStamp();if(state.map){if(state.focusMarker){state.map.removeLayer(state.focusMarker);state.focusMarker=null}state.map.setView([c.lat,c.lng],16);refreshMapSize(100)}$('mapFallbackLink').href=googleMapsLink(c);$('mapNoticeLink').href=googleMapsLink(c);renderList()}
 let reqSeq=0;
-async function fetchPlaces(extra=state.query){
+async function fetchPlaces(extra=state.query,focusAfterSearch=false){
  const seq=++reqSeq;
  state.loading=true;
  $('message').textContent='施設を探しています…';
@@ -562,7 +589,7 @@ async function fetchPlaces(extra=state.query){
   state.lastSearchedCenter={lat:center.lat,lng:center.lng};
   state.lastSearchedZoom=state.map?.getZoom()??16;
   updateSearchHereButton();
-  if(extra)qs.set('q',extra);const controller=new AbortController();const tm=setTimeout(()=>controller.abort(),11000);let response;try{response=await fetch(`${API}?${qs}`,{signal:controller.signal})}finally{clearTimeout(tm)}if(!response.ok)throw new Error('HTTP '+response.status);const json=await response.json();if(seq!==reqSeq)return;state.results=(Array.isArray(json.results)?json.results:[]).map(normalize).filter(Boolean).filter(p=>!isNightlifeName(p.name));state.lastFetch=Date.now();}catch(err){if(seq!==reqSeq)return;state.results=[];$('message').textContent='施設データが読み込めません。参考スポットのみ表示します。';console.warn('OpenPOI search unavailable',err)}finally{if(seq===reqSeq){state.loading=false;renderList();updateSearchHereButton();checkNear()}}}
+  if(extra)qs.set('q',extra);const controller=new AbortController();const tm=setTimeout(()=>controller.abort(),11000);let response;try{response=await fetch(`${API}?${qs}`,{signal:controller.signal})}finally{clearTimeout(tm)}if(!response.ok)throw new Error('HTTP '+response.status);const json=await response.json();if(seq!==reqSeq)return;state.results=(Array.isArray(json.results)?json.results:[]).map(normalize).filter(Boolean).filter(p=>!isNightlifeName(p.name));state.lastFetch=Date.now();}catch(err){if(seq!==reqSeq)return;state.results=[];$('message').textContent='施設データが読み込めません。参考スポットのみ表示します。';console.warn('OpenPOI search unavailable',err)}finally{if(seq===reqSeq){state.loading=false;renderList();if(focusAfterSearch&&extra===state.query)focusSearchResults({silent:true});updateSearchHereButton();checkNear()}}}
 function openDetail(p){
  state.selected=p;const row=eventFor(p,'seen');
  $('detailType').textContent=(TYPES[effectiveType(p)]||TYPES.other)[1];
@@ -599,10 +626,11 @@ function chooseFilter(f){
  if(!state.results.length||!state.lastFetch)fetchPlaces();
  else renderList()
 }
-function resetArea(){const a=AREAS[$('area').value];state.area=$('area').value;state.center={lat:a.lat,lng:a.lng};state.gps=null;status(a.name+'の地図 · 現在地未取得');state.query='';$('search').value='';state.lastQuery='';updateMap();fetchPlaces()}
+function resetArea(){const a=AREAS[$('area').value];state.area=$('area').value;state.center={lat:a.lat,lng:a.lng};state.gps=null;status(a.name+'の地図 · 現在地未取得');state.query='';$('search').value='';state.lastQuery='';state.searchMapActive=false;state.searchOriginalView=null;updateMap();fetchPlaces()}
 function onSearchInput(){
  const previous=state.query;
  state.query=$('search').value.trim();
+ if(previous&&!state.query)resetSearchMap(); // Return to the map location before search.
  renderList(); // Local and curated results respond immediately, including during IME entry.
  if(previous&&!state.query)fetchPlaces(''); // Clearing the search restores nearby API data.
 }
@@ -621,8 +649,16 @@ function doSearch(ev){
  if(state.tab!=='places')showTab('places');
  else renderList();
  $('search').blur(); // Dismiss the iPhone keyboard when search is submitted.
- $('places').scrollIntoView({behavior:'smooth',block:'start'});
- fetchPlaces(state.query); // q applies only to live API results in the visible map area.
+ // Query the current map viewport before panning to offscreen curated matches.
+ // When API results arrive, extend the map view to their geocoded matches.
+ fetchPlaces(state.query,!!state.query);
+ if(state.query){
+  focusSearchResults();
+  document.querySelector('.map-wrap').scrollIntoView({behavior:'smooth',block:'center'});
+ }else{
+  resetSearchMap();
+  $('places').scrollIntoView({behavior:'smooth',block:'start'})
+ }
 }
 function dataRows(category='all',status='all'){
  return Object.values(state.journal)
