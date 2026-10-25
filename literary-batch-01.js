@@ -1,6 +1,6 @@
-/* APP-025 Literary/people research batch 01. See docs/LITERARY_BATCH_01.md.
-   referenceArea is only a nearby-list discovery hint, never a map pin.
-   Exact GPS point is unknown for each record and is deliberately null. */
+/* APP-025 literary and notable-person place data batches 01 and 02.
+   Map pins require individually verified facility coordinates.
+   Approximate referenceArea is for list discovery ONLY, not visit/near-miss. */
 window.TOTTORI_LITERARY_BATCH_01=[
   {
     "id": "lit01:mochigase:01",
@@ -898,25 +898,23 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "relatedTypes": [
       "people"
     ],
-    "lat": null,
-    "lng": null,
-    "referenceArea": {
-      "lat": 35.43,
-      "lng": 133.33,
-      "radius": 15000
-    },
+    "lat": 35.4284076,
+    "lng": 133.3316822,
     "address": "米子市中町8",
     "note": "詩人・生田春月の原稿や書簡などを収蔵。閲覧は窓口確認。",
-    "source": "reference",
-    "verified": false,
+    "source": "curated",
+    "verified": true,
     "category": "literature",
     "url": "https://www.yonago-toshokan.jp/corner/tottori",
     "licenses": [],
     "attributions": [
-      "https://www.yonago-toshokan.jp/corner/tottori"
+      "https://www.yonago-toshokan.jp/corner/tottori",
+      "https://mapfan.com/spots/SC3AC%2CJ%2C800"
     ],
     "group": "人物ゆかりの施設",
-    "mapQuery": "米子市立図書館（生田春月文庫） 米子市中町8"
+    "mapQuery": "米子市立図書館（生田春月文庫） 米子市中町8",
+    "coordinateSource": "https://mapfan.com/spots/SC3AC%2CJ%2C800",
+    "coordinateNote": "MapFan WGS84施設地点・市立図書館公式所蔵情報"
   },
   {
     "id": "lit01:other:05",
@@ -978,25 +976,23 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "area": "tottori",
     "type": "people",
     "relatedTypes": [],
-    "lat": null,
-    "lng": null,
-    "referenceArea": {
-      "lat": 35.5,
-      "lng": 134.24,
-      "radius": 15000
-    },
+    "lat": 35.504277,
+    "lng": 134.233447,
     "address": "鳥取市西町3-202",
     "note": "童謡・唱歌とおもちゃの博物館。鳥取ゆかりの作曲家の資料。",
-    "source": "reference",
-    "verified": false,
+    "source": "curated",
+    "verified": true,
     "category": "people",
     "url": "https://www.torican.jp/spot/detail_1041.html",
     "licenses": [],
     "attributions": [
-      "https://www.torican.jp/spot/detail_1041.html"
+      "https://www.torican.jp/spot/detail_1041.html",
+      "https://travelscale.jp/spot/warabekan/"
     ],
     "group": "人物ゆかりの施設",
-    "mapQuery": "わらべ館（岡野貞一・田村虎蔵） 鳥取市西町3-202"
+    "mapQuery": "わらべ館（岡野貞一・田村虎蔵） 鳥取市西町3-202",
+    "coordinateSource": "https://travelscale.jp/spot/warabekan/",
+    "coordinateNote": "施設掲載座標・鳥取市公式施設情報"
   },
   {
     "id": "lit01:other:08",
@@ -1032,25 +1028,23 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "area": "tottori",
     "type": "people",
     "relatedTypes": [],
-    "lat": null,
-    "lng": null,
-    "referenceArea": {
-      "lat": 35.26,
-      "lng": 134.23,
-      "radius": 15000
-    },
+    "lat": 35.269637,
+    "lng": 134.229227,
     "address": "八頭郡智頭町智頭545",
     "note": "智頭町出身の映画監督・西河克己の作品資料を展示。",
-    "source": "reference",
-    "verified": false,
+    "source": "curated",
+    "verified": true,
     "category": "people",
     "url": "https://chizukankou-kurashiya.jp/highlight/places/eigakinenkan/",
     "licenses": [],
     "attributions": [
-      "https://chizukankou-kurashiya.jp/highlight/places/eigakinenkan/"
+      "https://chizukankou-kurashiya.jp/highlight/places/eigakinenkan/",
+      "https://www.navitime.co.jp/poi?spot=02301-pn0001899"
     ],
     "group": "人物ゆかりの施設",
-    "mapQuery": "西河克己映画記念館 八頭郡智頭町智頭545"
+    "mapQuery": "西河克己映画記念館 八頭郡智頭町智頭545",
+    "coordinateSource": "https://www.navitime.co.jp/poi?spot=02301-pn0001899",
+    "coordinateNote": "NAVITIME施設地点・智頭町観光協会"
   },
   {
     "id": "lit01:other:10",
@@ -1058,25 +1052,23 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "area": "kurayoshi",
     "type": "people",
     "relatedTypes": [],
-    "lat": null,
-    "lng": null,
-    "referenceArea": {
-      "lat": 35.43,
-      "lng": 133.82,
-      "radius": 15000
-    },
+    "lat": 35.429261,
+    "lng": 133.825405,
     "address": "倉吉市仲ノ町3445-8",
     "note": "鳥取ゆかりの画家・前田寛治や菅楯彦の作品を展示。",
-    "source": "reference",
-    "verified": false,
+    "source": "curated",
+    "verified": true,
     "category": "people",
     "url": "https://www.pref.tottori.lg.jp/manyo/",
     "licenses": [],
     "attributions": [
-      "https://www.pref.tottori.lg.jp/manyo/"
+      "https://www.pref.tottori.lg.jp/manyo/",
+      "https://www.navitime.co.jp/poi?spot=00004-31168800006"
     ],
     "group": "人物ゆかりの施設",
-    "mapQuery": "倉吉博物館（前田寛治・菅楯彦） 倉吉市仲ノ町3445-8"
+    "mapQuery": "倉吉博物館（前田寛治・菅楯彦） 倉吉市仲ノ町3445-8",
+    "coordinateSource": "https://www.navitime.co.jp/poi?spot=00004-31168800006",
+    "coordinateNote": "NAVITIME施設地点・倉吉市公式施設"
   },
   {
     "id": "lit01:other:11",
@@ -1140,24 +1132,123 @@ window.TOTTORI_LITERARY_BATCH_01=[
     "relatedTypes": [
       "people"
     ],
-    "lat": null,
-    "lng": null,
-    "referenceArea": {
-      "lat": 35.17,
-      "lng": 133.31,
-      "radius": 15000
-    },
+    "lat": 35.16361,
+    "lng": 133.30629,
     "address": "日野郡日南町霞785",
     "note": "井上靖と松本清張の文学を扱う展示にゆかりのある美術館。",
-    "source": "reference",
-    "verified": false,
+    "source": "curated",
+    "verified": true,
     "category": "literature",
     "url": "https://www.pref.tottori.lg.jp/item/128056.htm",
     "licenses": [],
     "attributions": [
-      "https://www.pref.tottori.lg.jp/item/128056.htm"
+      "https://www.pref.tottori.lg.jp/item/128056.htm",
+      "https://mapcarta.com/N1423068164"
     ],
     "group": "人物ゆかりの施設",
-    "mapQuery": "日南町美術館（井上靖・松本清張） 日野郡日南町霞785"
+    "mapQuery": "日南町美術館（井上靖・松本清張） 日野郡日南町霞785",
+    "coordinateSource": "https://mapcarta.com/N1423068164",
+    "coordinateNote": "OpenStreetMapの施設ポイント・日南町公開施設住所"
+  },
+  {
+    "id": "lit02:tottori:01",
+    "name": "鳥取民藝美術館（吉田璋也）",
+    "area": "tottori",
+    "type": "people",
+    "relatedTypes": [],
+    "lat": null,
+    "lng": null,
+    "verified": false,
+    "source": "reference",
+    "category": "people",
+    "referenceArea": {
+      "lat": 35.496,
+      "lng": 134.228,
+      "radius": 6500
+    },
+    "address": "鳥取市栄町651",
+    "note": "民藝運動家・吉田璋也が創設した美術館。本人の工芸活動やデザインに触れられる。",
+    "url": "https://www.tottori-mingei.jp/index.html",
+    "mapQuery": "鳥取民藝美術館 鳥取市栄町651",
+    "licenses": [],
+    "attributions": [
+      "鳥取民藝美術館公式"
+    ]
+  },
+  {
+    "id": "lit02:tottori:02",
+    "name": "たくみ割烹店（吉田璋也）",
+    "area": "tottori",
+    "type": "people",
+    "relatedTypes": [
+      "food"
+    ],
+    "lat": 35.496126,
+    "lng": 134.226973,
+    "verified": true,
+    "source": "curated",
+    "category": "people",
+    "address": "鳥取市栄町652",
+    "note": "吉田璋也が手がけた民藝の器と空間を楽しめる飲食店。入店は営業確認のうえ。",
+    "url": "https://www.tottori-mingei.jp/takumikappou.html",
+    "coordinateSource": "https://www.navitime.co.jp/poi?spot=02301-pn0000801",
+    "coordinateNote": "NAVITIME掲載の店舗地点",
+    "licenses": [],
+    "attributions": [
+      "たくみ割烹店公式",
+      "NAVITIME店舗地点"
+    ]
+  },
+  {
+    "id": "lit02:tottori:03",
+    "name": "鳥取たくみ工芸店（吉田璋也）",
+    "area": "tottori",
+    "type": "people",
+    "relatedTypes": [],
+    "lat": null,
+    "lng": null,
+    "verified": false,
+    "source": "reference",
+    "category": "people",
+    "referenceArea": {
+      "lat": 35.496,
+      "lng": 134.228,
+      "radius": 6500
+    },
+    "address": "鳥取市栄町（鳥取民藝美術館隣接）",
+    "note": "吉田璋也が創業した民藝専門店。鳥取を中心とした手仕事を紹介。",
+    "url": "https://www.tottori-mingei.jp/about.html",
+    "mapQuery": "鳥取たくみ工芸店 鳥取市",
+    "licenses": [],
+    "attributions": [
+      "鳥取民藝美術館公式"
+    ]
+  },
+  {
+    "id": "lit02:yonago:01",
+    "name": "生田春月文学碑「相寄る魂」",
+    "area": "yonago",
+    "type": "literature",
+    "relatedTypes": [
+      "people"
+    ],
+    "lat": null,
+    "lng": null,
+    "verified": false,
+    "source": "reference",
+    "category": "literature",
+    "referenceArea": {
+      "lat": 35.4586,
+      "lng": 133.3588,
+      "radius": 6000
+    },
+    "address": "米子市皆生温泉・皆生海浜公園",
+    "note": "米子出身の詩人・生田春月の作品を刻んだ碑。彫刻家・辻晉堂によるもの。",
+    "url": "https://www.city.yonago.lg.jp/11460.htm",
+    "mapQuery": "生田春月文学碑 皆生海浜公園",
+    "licenses": [],
+    "attributions": [
+      "米子市・野外彫刻作品一覧"
+    ]
   }
 ];
