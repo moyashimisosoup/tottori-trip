@@ -33,6 +33,13 @@ function withCatalog(p){
  if(cached&&Number.isFinite(cached.lat)&&Number.isFinite(cached.lng))
   return {...p,address,lat:cached.lat,lng:cached.lng,verified:false,
    locationSource:'address-catalog',locationPrecision:info.approximate?'broad':'address'};
+ // Many existing literary inscriptions have a curated surrounding-area center
+ // but no exact monument coordinate. Display that reference immediately,
+ // without depending on a geocoder API, and do not award GPS encounters.
+ if((p.type==='literature'||p.relatedTypes?.includes('literature'))&&
+    Number.isFinite(p.referenceArea?.lat)&&Number.isFinite(p.referenceArea?.lng))
+  return {...p,address,lat:p.referenceArea.lat,lng:p.referenceArea.lng,
+   verified:false,locationSource:'literary-reference',locationPrecision:'broad'};
  return p.address?p:{...p,address}
 }
 async function resolveRegisteredAddress(place,{retry=false}={}){
@@ -834,15 +841,49 @@ function markerCategory(p){
   return state.filter;
  return TYPES[effectiveType(p)]?effectiveType(p):'other'
 }
+function openLiteraryReferenceGroup(spots){
+ // Multiple literary inscriptions can share one *approximate* area center.
+ // Let the visitor choose a specific inscription instead of stacking icons.
+ $('literaryMapTitle').textContent='文学碑・句碑 · '+spots.length+'地点';
+ $('literaryMapNote').textContent='周辺の参考位置を共有しています。個々の碑の正確な場所ではありません。';
+ $('literaryMapList').replaceChildren(...spots.map(p=>{
+  const section=document.createElement('section');section.className='literary-map-work';
+  const title=document.createElement('strong');title.textContent=p.name;
+  const sub=document.createElement('p');sub.textContent=p.address||'所在地は未確認';
+  const actions=document.createElement('div');actions.className='literary-work-actions';
+  const btn=document.createElement('button');btn.type='button';btn.textContent='この地点の詳細';
+  btn.addEventListener('click',()=>{$('literaryMapDialog').close();openDetail(p)});
+  actions.appendChild(btn);
+  section.append(title,sub,actions);return section
+ }));
+ $('literaryMapDialog').showModal()
+}
 function drawMarkers(list){
  if(!state.map||!window.L)return;
  state.markers.clearLayers();
+ const approximateGroups=new Map();
  for(const p of list){
   if(p.lat==null||p.lng==null)continue;
+  if(p.locationSource==='literary-reference'){
+   const key=p.lat.toFixed(5)+','+p.lng.toFixed(5);
+   if(!approximateGroups.has(key))approximateGroups.set(key,[]);
+   approximateGroups.get(key).push(p);
+   continue
+  }
   const icon=mapPoiIcon(p);
   const marker=L.marker([p.lat,p.lng],{icon});
   marker.on('click',()=>openDetail(p));
   marker.addTo(state.markers)
+ }
+ for(const spots of approximateGroups.values()){
+  const first=spots[0],cluster=spots.length>1;
+  const icon=cluster?
+   L.divIcon({className:'literary-map-leaflet',iconSize:[48,40],iconAnchor:[1,41],
+    html:'<div class="literary-map-pin literary-reference-pin" title="参考地点の文学碑 '+spots.length+'件"><span class="pixel-art icon-book" aria-hidden="true"></span><b>'+spots.length+'</b></div>'}):
+   mapPoiIcon(first);
+  L.marker([first.lat,first.lng],{icon,zIndexOffset:cluster?1450:200})
+   .on('click',()=>cluster?openLiteraryReferenceGroup(spots):openDetail(first))
+   .addTo(state.markers)
  }
  if(state.query.trim()&&state.geocodeResult&&
     !list.some(p=>placeKey(p)===placeKey(geoPlace(state.geocodeResult)))){ 
@@ -1103,7 +1144,9 @@ function openDetail(p){
  const sourceLabel=p.source==='tottori-city-poi'?'鳥取市オープンデータ':p.source==='official-tourism'?'とっとり旅（公式）':p.source==='guide'?'観光・施設資料':p.source==='gsi-search'?'国土地理院・地名住所検索':p.source==='railway-search'?'駅位置資料':curated||p.source==='reference'?'公開資料':'OpenPOI API';
  const sourceURL=p.source==='tottori-city-poi'?HOSAI_DATASET:curated||p.source==='reference'||p.source==='guide'||p.source==='official-tourism'||p.source==='gsi-search'||p.source==='railway-search'?p.url:null;
  const safeSource=sourceURL&&/^https:\/\//.test(sourceURL)?'<a class="detail-source" href="'+q(sourceURL)+'" target="_blank" rel="noopener noreferrer">'+sourceLabel+' ↗</a>':'<small class="detail-source">'+sourceLabel+'</small>';
- $('detailTags').innerHTML=badgesFor(p,row)+safeSource+(p.verified===false?'<small class="detail-source">周辺の代表位置（近隣すれ違い判定）</small>':'');
+ $('detailTags').innerHTML=badgesFor(p,row)+safeSource+(p.locationSource==='literary-reference'?
+  '<small class="detail-source">参考地点（地図表示のみ・自動すれ違い対象外）</small>':
+  p.verified===false?'<small class="detail-source">周辺の代表位置（近隣すれ違い判定）</small>':'');
  // Address display works without any position-confirmation / GPS opt-in button.
  $('viewOnMapBtn').disabled=(p.lat==null||p.lng==null)&&!addressQueryText(ADDRESS_CATALOG.get(p.id)?.address||p.address);
  $('visitBtn').textContent=row.visitedAt?'✓ 訪問済':'✓ 訪れた';
@@ -1119,6 +1162,8 @@ function onLocation(pos,recenter){const p={lat:pos.coords.latitude,lng:pos.coord
 function locate(){if(!navigator.geolocation){toast('この端末では現在地を取得できません');return}status('現在地を確認中…');navigator.geolocation.getCurrentPosition(p=>onLocation(p,true),locationFailure,{enableHighAccuracy:true,timeout:12000,maximumAge:15000})}
 function canAutoDetect(p){
  if(!p||!Number.isFinite(p.lat)||!Number.isFinite(p.lng))return false;
+ // A broad author/inscription neighborhood is a map hint, not a GPS hit.
+ if(p.locationSource==='literary-reference')return false;
  // A mapped district is enough for an approximate "passed nearby" event.
  // Do not make dozens of individual literary monuments from one shared area pin.
  if(p.group||/個別の碑位置|個別位置|作品の舞台/.test(String(p.address||'')))return false;
