@@ -191,3 +191,7 @@
 .literary-map-work.selected{outline:2px solid var(--rose);outline-offset:-2px}
 .literary-map-work strong{display:block;font-size:13px;overflow-wrap:anywhere}
 .literary-map-work p{font-size:11px;color:var(--muted);margin:5px 0}
+
+/* Reference-only literary cluster: different from 58-book publication pins. */
+.literary-reference-pin{background:var(--paper);border-style:dashed}
+.literary-reference-pin:after{background:var(--paper)}
