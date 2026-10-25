@@ -130,3 +130,18 @@
  border-top:1px solid var(--stroke);padding-top:12px;
  color:var(--muted);font-size:11px;font-weight:900}
 .detail-actions .detail-external-btn{background:var(--paper);font-size:clamp(11px,3.1vw,13px)}
+
+/* Compact horizontal genre rail: never compress ten chips on an iPhone. */
+.filters{display:flex;overflow-x:auto;overflow-y:hidden;gap:4px;padding:2px 2px 12px;
+ scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.filters .chip{flex:0 0 auto;min-width:50px;scroll-snap-align:start;padding-inline:7px;font-size:11px}
+.chip[data-filter="cafe"]{--spot-color:#c98d6e}
+.chip[data-filter="lodging"]{--spot-color:#78a2bd}
+/* Show only after a map pan/zoom, on top of the map like Google Maps. */
+.map-wrap{position:relative}
+.map-wrap .map-search-here{position:absolute;left:50%;top:12px;transform:translateX(-50%);
+ z-index:850;width:auto;max-width:calc(100% - 126px);min-height:34px;margin:0;
+ padding:5px 10px;border-radius:17px;background:var(--card);font-size:11px;
+ white-space:nowrap;box-shadow:1px 2px 0 var(--ink)}
+.map-wrap .map-search-here[hidden]{display:none}
+.map-wrap .map-search-here:active{transform:translateX(calc(-50% + 1px)) translateY(1px)}
