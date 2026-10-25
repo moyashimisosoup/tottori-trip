@@ -9,7 +9,7 @@
 <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script defer src="literary-batch-01.js?v=20261025-03"></script>
 <script defer src="official-landmarks.js?v=20261025-02"></script>
-<script defer src="app.js?v=20261025-14"></script>
+<script defer src="app.js?v=20261025-15"></script>
 </head>
 <body>
 <div class="shell">
@@ -32,7 +32,7 @@
     <section class="explorer">
       <div class="toolbar">
         <label class="sr-only" for="area">エリア</label><select id="area"><option value="tottori">鳥取市</option><option value="kurayoshi">倉吉</option><option value="yonago">米子</option><option value="sakaiminato">境港</option></select>
-        <form id="searchForm" role="search"><label class="sr-only" for="search">名前で探す</label><input id="search" autocomplete="off" placeholder="名前で探す" maxlength="60"><button type="submit" aria-label="検索">⌕</button></form>
+        <form id="searchForm" role="search"><label class="sr-only" for="search">名前で探す</label><input id="search" type="search" enterkeyhint="search" autocomplete="off" placeholder="名前で探す" maxlength="60"><button type="submit" aria-label="検索">⌕</button></form>
       </div>
       <div class="filters" role="group" aria-label="ジャンル">
         <button class="chip active" data-filter="all" aria-pressed="true">すべて</button><button class="chip" data-filter="sight">名所</button><button class="chip" data-filter="history">史跡</button><button class="chip" data-filter="literature">文学</button><button class="chip" data-filter="people">偉人</button><button class="chip" data-filter="food">飲食</button><button class="chip" data-filter="temple">寺社</button>
@@ -62,7 +62,7 @@
   <footer><span>© <a href="https://openpoiapi.com/attribution.html" target="_blank" rel="noopener">OpenPOI API</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></span><span>旅の記録はこの端末に保存</span></footer>
 </div>
 <dialog id="detail"><form method="dialog" class="dialog-head"><span id="detailType">SPOT</span><button aria-label="閉じる">×</button></form><h2 id="detailName"></h2><div class="detail-meta" id="detailMeta"></div><p id="detailNote"></p><div id="detailTags"></div><div class="detail-actions"><button id="visitBtn" class="primary" type="button">✓ 訪れた</button><button id="nearBtn" type="button">◇ すれ違った</button><button id="viewOnMapBtn" type="button">⌖ 地図で見る</button><button id="googleMapsBtn" type="button">↗ Googleマップ</button></div></dialog>
-<dialog id="info"><form method="dialog" class="dialog-head"><span>あそびかた</span><button aria-label="閉じる">×</button></form><div class="instructions"><p><b>みつけた</b>：気になる場所を開くと旅帖に残ります。</p><p><b>すれ違った</b>：近くを通ったら記録。自動記録は「すれ違い ON」時のみ、画面を開いている間だけ動きます。</p><p><b>訪れた</b>：実際に行ったら自分で記録。</p><p>スポットの「地図で見る」でピンに移動します。地図を動かしたあとは「この範囲で再検索」を押すと、その範囲を探します。ダブルタップして2回目を押さえたまま上へ動かすと拡大できます。Googleマップでも開けます。</p><p>距離は目安。GPS精度や登録地点のずれがあります。表示しただけでは訪問とはなりません。 現在地を取得していないときも鳥取市の地図を初期表示します。初期中心は現在地ではありません。</p><p>近くの施設を探す際、検索中心の座標をOpenPOI APIに送信します。GPSの移動履歴は保存しません。旅帖はこの端末に保存され、消去すると失われます。バックアップをおすすめします。</p><p>施設データ：<a href="https://openpoiapi.com/attribution.html" target="_blank" rel="noopener">OpenPOI API 出典・ライセンス</a>。文化スポットの補助情報：<a href="https://www.tottori-guide.jp/" target="_blank" rel="noopener">とっとり旅</a>、<a href="https://www.pref.tottori.lg.jp/tottori_bungaku_tanbo_map/" target="_blank" rel="noopener">鳥取県文学探訪</a>。</p></div></dialog>
+<dialog id="info"><form method="dialog" class="dialog-head"><span>あそびかた</span><button aria-label="閉じる">×</button></form><div class="instructions"><p><b>みつけた</b>：気になる場所を開くと旅帖に残ります。</p><p><b>すれ違った</b>：近くを通ったら記録。自動記録は「すれ違い ON」時のみ、画面を開いている間だけ動きます。</p><p><b>訪れた</b>：実際に行ったら自分で記録。</p><p>スポットの「地図で見る」でピンに移動します。地図を動かしたあとは「この範囲で再検索」を押すと、その範囲を探します。ダブルタップして2回目を押さえたまま上へ動かすと拡大できます。Googleマップでも開けます。</p><p>距離は目安。GPS精度や登録地点のずれがあります。表示しただけでは訪問とはなりません。 現在地を取得していないときも鳥取市の地図を初期表示します。初期中心は現在地ではありません。 施設名検索は鳥取県内の登録地点を全エリアから探し、地図外の候補も一覧に表示します。外部OpenPOI検索は表示中の地図範囲が対象です。</p><p>近くの施設を探す際、検索中心の座標をOpenPOI APIに送信します。GPSの移動履歴は保存しません。旅帖はこの端末に保存され、消去すると失われます。バックアップをおすすめします。</p><p>施設データ：<a href="https://openpoiapi.com/attribution.html" target="_blank" rel="noopener">OpenPOI API 出典・ライセンス</a>。文化スポットの補助情報：<a href="https://www.tottori-guide.jp/" target="_blank" rel="noopener">とっとり旅</a>、<a href="https://www.pref.tottori.lg.jp/tottori_bungaku_tanbo_map/" target="_blank" rel="noopener">鳥取県文学探訪</a>。</p></div></dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 </body></html>
