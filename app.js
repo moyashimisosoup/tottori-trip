@@ -14,7 +14,7 @@ function readLocationCache(){
  }catch{return {}}
 }
 const addressCache=readLocationCache(),addressRequests=new Map(),addressAttempted=new Set();
-let addressEnrichmentActive=false;
+let addressEnrichmentActive=false,addressNetworkUnavailable=false;
 function addressQueryText(address){
  // The descriptive tail identifies a group of monuments, not a postal address.
  const text=String(address||'').replace(/^鳥取県/,'').split(/[・（(]/)[0].trim();
@@ -40,7 +40,7 @@ async function resolveRegisteredAddress(place,{retry=false}={}){
  if(!entry)return null;
  const address=place.address||entry.address,query=addressQueryText(address);
  if(!query)return null;
- if(retry)addressAttempted.delete(query);
+ if(retry){addressAttempted.delete(query);addressNetworkUnavailable=false}
  if(addressCache[query])return withCatalog(place);
  if(addressAttempted.has(query))return null;
  if(addressRequests.has(query))return addressRequests.get(query);
@@ -65,6 +65,7 @@ async function resolveRegisteredAddress(place,{retry=false}={}){
    if(state.tracking)checkNear();
    return withCatalog(place)
   }catch(err){
+   addressNetworkUnavailable=true;
    console.warn('Registered address geocode unavailable',query,err);
    return null
   }finally{clearTimeout(timeout);addressRequests.delete(query)}
@@ -78,7 +79,7 @@ async function enrichRegisteredLocations(){
  const areaAtStart=state.area;
  try{
   for(const place of currentGuides()){
-   if(areaAtStart!==state.area)break;
+   if(areaAtStart!==state.area||addressNetworkUnavailable)break;
    if(Number.isFinite(place.lat)&&Number.isFinite(place.lng))continue;
    const address=ADDRESS_CATALOG.get(place.id)?.address;
    const query=addressQueryText(address);
@@ -86,7 +87,11 @@ async function enrichRegisteredLocations(){
    await resolveRegisteredAddress(place);
    await new Promise(resolve=>setTimeout(resolve,700)); // gentle, serial API reads
   }
- }finally{addressEnrichmentActive=false}
+ }finally{
+  addressEnrichmentActive=false;
+  if(areaAtStart!==state.area&&!addressNetworkUnavailable)
+   setTimeout(()=>void enrichRegisteredLocations(),0)
+ }
 }
 function loadPreferences(){
  const defaults={showOther:false,tone:3};
@@ -917,11 +922,12 @@ async function fetchPlaces(extra=state.query,focusAfterSearch=false){
   updateSearchHereButton();
   if(extra)qs.set('q',extra);const controller=new AbortController();const tm=setTimeout(()=>controller.abort(),11000);let response;try{response=await fetch(`${API}?${qs}`,{signal:controller.signal})}finally{clearTimeout(tm)}if(!response.ok)throw new Error('HTTP '+response.status);const json=await response.json();if(seq!==reqSeq)return;state.results=(Array.isArray(json.results)?json.results:[]).map(normalize).filter(Boolean).filter(p=>!isNightlifeName(p.name));state.lastFetch=Date.now();}catch(err){if(seq!==reqSeq)return;state.results=[];$('message').textContent='施設データが読み込めません。参考スポットのみ表示します。';console.warn('OpenPOI search unavailable',err)}finally{if(seq===reqSeq){state.loading=false;renderList();if(focusAfterSearch&&extra===state.query)focusSearchResults({silent:true});updateSearchHereButton();checkNear();void enrichRegisteredLocations()}}}
 function openDetail(p){
+ p=withCatalog(p);
  const saved=journalRecordFor(p)?.place;
  // Do not undo a previously confirmed location when the original listing has
  // an older, unverified copy of this place.
  if(saved?.verified===true&&p.verified!==true&&Number.isFinite(saved.lat)&&Number.isFinite(saved.lng))
-  p=saved;
+  p=withCatalog(saved);
  state.selected=p;eventFor(p,'seen');const row=journalRecordFor(p);
  $('detailType').textContent=(TYPES[effectiveType(p)]||TYPES.other)[1];
  $('detailName').textContent=p.name;
