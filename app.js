@@ -2,6 +2,20 @@
 'use strict';
 const API='https://api.openpoiapi.com/v1/search';
 const KEY='tottori-trip-v1';
+const UI_KEY='tottori-trip-ui-v1';
+function loadPreferences(){
+ const defaults={showOther:false,tone:3};
+ try{
+  const saved=JSON.parse(localStorage.getItem(UI_KEY)||'{}');
+  return {showOther:saved?.showOther===true,
+   tone:Number.isInteger(saved?.tone)&&saved.tone>=1&&saved.tone<=5?saved.tone:defaults.tone}
+ }catch{return defaults}
+}
+function touristSpot(p){
+ // Visitor-facing places: landmarks, history, cultural/literary spots,
+ // notable people and temples. General POIs and food are opt-in.
+ return ['sight','history','temple','literature','people'].includes(effectiveType(p))
+}
 const TOTTORI_STATION_ID='search:railway:tottori';
 const TOTTORI_STATION_POINT={lat:35.49422,lng:134.226085};
 const AREAS={
@@ -67,7 +81,7 @@ const initial=()=>{
   return obj
  }catch{return {}}
 };
-const state={area:'tottori',center:AREAS.tottori,filter:'all',query:'',places:[],results:[],journal:initial(),tab:'places',journalFilter:'all',journalStatus:'all',selected:null,map:null,markers:null,gps:null,watch:null,tracking:false,lastFetch:0,lastLoc:null,toastTimer:0,loading:false,searchMapActive:false,searchOriginalView:null,geocodeResult:null};
+const state={area:'tottori',center:AREAS.tottori,filter:'all',query:'',places:[],results:[],journal:initial(),tab:'places',journalFilter:'all',journalStatus:'all',selected:null,map:null,markers:null,gps:null,watch:null,tracking:false,lastFetch:0,lastLoc:null,toastTimer:0,loading:false,searchMapActive:false,searchOriginalView:null,geocodeResult:null,prefs:loadPreferences()};
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state.journal))}catch{toast('保存できません。空き容量をご確認ください')}}
 function idOf(p){return p.id||'poi:'+([p.source||'',p.name||'',Number(p.lat).toFixed(5),Number(p.lng).toFixed(5)].join('|'))}
 // Group the exact station name near its representative point. Similar names
@@ -178,6 +192,9 @@ function normalizedSearch(value){
 function matches(p){
  if(isNightlifeName(p.name)||state.filter!=='all'&&(effectiveType(p)!==state.filter&&!p.relatedTypes?.includes(state.filter)))return false;
  const term=normalizedSearch(state.query);
+ // Restrict only the default unfiltered browsing view. Explicit name/address
+ // search and genre choices (such as 飲食) must continue to work normally.
+ if(!state.prefs.showOther&&!term&&state.filter==='all'&&!touristSpot(p))return false;
  if(term){
   const text=normalizedSearch([p.name,p.address,p.note,p.mapQuery].filter(Boolean).join(' '));
   if(!term.split(/\s+/).every(word=>text.includes(word)))return false
@@ -466,6 +483,15 @@ function pixelIcon(p){
  return '<span class="pixel-art icon-'+(ATLAS_ICONS.has(kind)?kind:'building')+'" aria-hidden="true"></span>'
 }
 
+function miniMapIcon(p,extraClass=''){
+ const accuracy=p.verified===false?' is-approx':'';
+ return '<div class="map-icon-pin'+accuracy+(extraClass?' '+extraClass:'')+
+  '" title="'+q(p.name)+'"><span class="map-poi-icon">'+pixelIcon(p)+'</span></div>'
+}
+function mapPoiIcon(p,extraClass=''){
+ return L.divIcon({className:'map-poi-leaflet-icon',html:miniMapIcon(p,extraClass),
+  iconSize:[38,44],iconAnchor:[19,41],popupAnchor:[0,-38]})
+}
 function fillPlaceCard(place,row){const btn=document.createElement('button');btn.className='place-card';btn.type='button';btn.dataset.id=place.id;const [,label]=TYPES[place.type]||TYPES.other;btn.innerHTML=`<span class="symbol" aria-hidden="true">${pixelIcon(place)}</span><span class="content"><span class="name">${q(place.name)}</span>${badgesFor(place,row)}<span class="minor">${q(prettyDist(place))}</span></span><span class="arrow" aria-hidden="true">›</span>`;btn.addEventListener('click',()=>openDetail(place));return btn}
 function renderList(){
  state.places=allPlaces();
@@ -538,22 +564,17 @@ function drawMarkers(list){
  state.markers.clearLayers();
  for(const p of list){
   if(p.lat==null||p.lng==null)continue;
-  const icon=L.divIcon({
-   className:'',
-   html:`<div class="pixel-pin c-${markerCategory(p)}"></div>`,
-   iconSize:[22,22],iconAnchor:[11,11]
-  });
+  const icon=mapPoiIcon(p);
   const marker=L.marker([p.lat,p.lng],{icon});
   marker.on('click',()=>openDetail(p));
   marker.addTo(state.markers)
  }
  if(state.query.trim()&&state.geocodeResult){
   // Temporary search marker. Never make a journal entry or count a GPS discovery.
-  const p=state.geocodeResult;
-  const icon=L.divIcon({className:'',html:'<div class="search-pin"><span></span></div>',
-   iconSize:[28,28],iconAnchor:[14,14]});
+  const p=state.geocodeResult,place=geoPlace(p);
+  const icon=mapPoiIcon(place,'is-search');
   L.marker([p.lat,p.lng],{icon,zIndexOffset:1600})
-   .on('click',()=>openDetail(geoPlace(p))).addTo(state.markers)
+   .on('click',()=>openDetail(place)).addTo(state.markers)
  }
  if(state.gps){
   // Current GPS position is distinct in both shape and color from all categories.
@@ -754,7 +775,7 @@ function viewOnMap(){
  if(!state.map){window.open(googleMapsLink(p),'_blank','noopener');return}
  if(state.focusMarker)state.map.removeLayer(state.focusMarker);
  state.map.setView([p.lat,p.lng],Math.max(15,state.map.getZoom()),{animate:false});
- const icon=L.divIcon({className:'',html:'<div class="pixel-pin c-'+markerCategory(p)+' focus-pin"></div>',iconSize:[28,28],iconAnchor:[14,14]});
+ const icon=mapPoiIcon(p,'is-focus');
  state.focusMarker=L.marker([p.lat,p.lng],{icon,zIndexOffset:1000}).addTo(state.map);
  $('mapFallbackLink').href=googleMapsLink(p);$('mapNoticeLink').href=googleMapsLink(p);
  document.querySelector('.map-wrap').scrollIntoView({behavior:'smooth',block:'center'});
@@ -909,5 +930,22 @@ function drawWrapped(ctx,text,x,y,maxWidth,lineHeight,maxLines){const chars=Arra
 function makeCanvas(){const visible=dataRows(state.journalFilter,state.journalStatus),total=visible.length,rows=visible.slice(0,60);const w=900,top=240,rowH=88,h=Math.max(480,top+Math.max(1,rows.length)*rowH+100);const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#f6f2e6';x.fillRect(0,0,w,h);x.fillStyle='#253348';x.font='bold 56px sans-serif';x.fillText('とっとりトリップ',60,100);x.font='24px sans-serif';x.fillText(new Date().toLocaleDateString('ja-JP'),62,150);x.fillText(`みつけた ${rows.filter(r=>r.seenAt).length}   すれ違い ${rows.filter(r=>r.nearAt).length}   訪れた ${rows.filter(r=>r.visitedAt).length}`,60,194);rows.forEach((r,i)=>{const y=top+i*rowH;x.fillStyle=i%2?'#f0ebdd':'#fffdf5';x.fillRect(45,y-12,w-90,rowH-4);x.fillStyle='#253348';x.font='bold 25px sans-serif';drawWrapped(x,r.place.name,60,y+23,650,26,1);x.font='20px sans-serif';x.fillStyle='#6b727b';x.fillText(`${rank(r)}  ${stamp(r.visitedAt||r.nearAt||r.seenAt)}`,62,y+56)});x.fillStyle='#253348';x.font='18px sans-serif';x.fillText(`TOTTORI TRIP  ·  OpenPOI API  ·  ${rows.length}/${total}件`,50,h-32);return c}
 async function imageExport(){try{const c=makeCanvas();const blob=await new Promise(resolve=>c.toBlob(resolve,'image/png'));if(!blob)throw Error('png');const file=new File([blob],'tottori-trip.png',{type:'image/png'});if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:'とっとりトリップ'});return}catch(err){if(err.name==='AbortError')return}}download(blob,'tottori-trip.png');toast('旅帖の画像を作成しました')}catch{toast('画像を作成できませんでした')}}
 function openGoogle(){const p=state.selected;if(p)window.open(googleMapsLink(p),'_blank','noopener')}
-function init(){mapInit();$('stats').addEventListener('click',e=>{const target=e.target.closest('[data-journal-status]');if(target)toggleJournalStatus(target.dataset.journalStatus)});$('area').addEventListener('change',resetArea);$('locateBtn').addEventListener('click',locate);$('trackBtn').addEventListener('click',toggleTracking);$('searchForm').addEventListener('submit',doSearch);$('search').addEventListener('input',onSearchInput);$('searchHereBtn').addEventListener('click',searchVisibleMap);document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>chooseFilter(b.dataset.filter)));$('placesTab').addEventListener('click',()=>showTab('places'));$('journalTab').addEventListener('click',()=>showTab('journal'));$('journalFilter').addEventListener('change',e=>setJournalFilter(e.target.value));$('visitBtn').addEventListener('click',()=>recordClick('visited'));$('nearBtn').addEventListener('click',()=>recordClick('near'));$('confirmPositionBtn').addEventListener('click',confirmPosition);$('googleMapsBtn').addEventListener('click',openGoogle);$('viewOnMapBtn').addEventListener('click',viewOnMap);$('mapSourceBtn').addEventListener('click',changeMapProvider);$('mapRetryBtn').addEventListener('click',reloadMapTiles);$('mapFallbackRetryBtn').addEventListener('click',reloadMapTiles);$('infoBtn').addEventListener('click',()=>$('info').showModal());$('imageBtn').addEventListener('click',imageExport);$('printBtn').addEventListener('click',()=>{renderJournal();window.print()});$('backupBtn').addEventListener('click',backup);$('restoreFile').addEventListener('change',restore);$('journalCount').textContent=journalRows().length;renderList();fetchPlaces();}
+function applyPreferences(){
+ const pref=state.prefs;
+ document.documentElement.dataset.tone=String(pref.tone);
+ $('showOtherPlaces').checked=pref.showOther;
+ $('toneSelect').value=String(pref.tone);
+}
+function updatePreferences(){
+ state.prefs={showOther:$('showOtherPlaces').checked,tone:Number($('toneSelect').value)};
+ applyPreferences();
+ try{localStorage.setItem(UI_KEY,JSON.stringify(state.prefs))}
+ catch{toast('表示設定を保存できませんでした')}
+ renderList();
+ if(state.tab==='journal')renderJournal()
+}
+function init(){applyPreferences();mapInit();
+ $('settingsBtn').addEventListener('click',()=>$('settings').showModal());
+ $('showOtherPlaces').addEventListener('change',updatePreferences);
+ $('toneSelect').addEventListener('change',updatePreferences);$('stats').addEventListener('click',e=>{const target=e.target.closest('[data-journal-status]');if(target)toggleJournalStatus(target.dataset.journalStatus)});$('area').addEventListener('change',resetArea);$('locateBtn').addEventListener('click',locate);$('trackBtn').addEventListener('click',toggleTracking);$('searchForm').addEventListener('submit',doSearch);$('search').addEventListener('input',onSearchInput);$('searchHereBtn').addEventListener('click',searchVisibleMap);document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>chooseFilter(b.dataset.filter)));$('placesTab').addEventListener('click',()=>showTab('places'));$('journalTab').addEventListener('click',()=>showTab('journal'));$('journalFilter').addEventListener('change',e=>setJournalFilter(e.target.value));$('visitBtn').addEventListener('click',()=>recordClick('visited'));$('nearBtn').addEventListener('click',()=>recordClick('near'));$('confirmPositionBtn').addEventListener('click',confirmPosition);$('googleMapsBtn').addEventListener('click',openGoogle);$('viewOnMapBtn').addEventListener('click',viewOnMap);$('mapSourceBtn').addEventListener('click',changeMapProvider);$('mapRetryBtn').addEventListener('click',reloadMapTiles);$('mapFallbackRetryBtn').addEventListener('click',reloadMapTiles);$('infoBtn').addEventListener('click',()=>$('info').showModal());$('imageBtn').addEventListener('click',imageExport);$('printBtn').addEventListener('click',()=>{renderJournal();window.print()});$('backupBtn').addEventListener('click',backup);$('restoreFile').addEventListener('change',restore);$('journalCount').textContent=journalRows().length;renderList();fetchPlaces();}
 if(document.readyState==='complete')init();else window.addEventListener('load',init,{once:true});
