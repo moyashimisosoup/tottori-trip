@@ -27,13 +27,52 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p _site
-          cp index.html styles.css app.js literary-batch-01.js official-landmarks.js _site/
+          # Publish every active script. Previously the workflow omitted new
+          # literary-map / catalog files, so Pages returned 404 for them.
+          cp index.html styles.css ./*.js _site/
           mkdir -p _site/assets/icons
           cp assets/icons/tottori-icon-atlas.png _site/assets/icons/
           cp assets/icons/tottori-icon-atlas-18.png _site/assets/icons/
           mkdir -p _site/vendor
           cp vendor/leaflet.css vendor/LEAFLET-LICENSE.txt _site/vendor/
           touch _site/.nojekyll
+      - name: Verify linked runtime assets
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.parse import urlsplit
+          import re
+
+          root = Path('_site')
+          class LocalLinks(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.links = []
+              def handle_starttag(self, tag, attrs):
+                  attributes = dict(attrs)
+                  if tag == 'script' and attributes.get('src'):
+                      self.links.append(attributes['src'])
+                  elif tag == 'link' and 'stylesheet' in attributes.get('rel', '').split():
+                      self.links.append(attributes.get('href', ''))
+          parser = LocalLinks()
+          parser.feed((root/'index.html').read_text(encoding='utf-8'))
+          stylesheet = [p for p in parser.links if p.partition('?')[0].endswith('.css')]
+          for css in stylesheet:
+              css_path = root/urlsplit(css).path
+              if css_path.is_file():
+                  parser.links.extend(re.findall(r'url\\([\'\"]?([^\'\")]+)',css_path.read_text(encoding='utf-8')))
+          missing = []
+          for link in parser.links:
+              if not link or link.startswith(('https:', 'http:', 'data:')):
+                  continue
+              path = urlsplit(link).path
+              if path.startswith('/') or '..' in Path(path).parts or not (root/path).is_file():
+                  missing.append(path)
+          if missing:
+              raise SystemExit('Pages artifact missing linked assets: '+', '.join(missing))
+          print('All linked static scripts, stylesheets and icon assets are included.')
+          PY
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload static site
