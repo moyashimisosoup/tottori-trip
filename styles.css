@@ -123,3 +123,10 @@
 .detail-address-controls input{font-size:16px}
 .detail-address-controls button{background:var(--paper);font-size:12px}
 @media(min-width:420px){.theme-options{grid-template-columns:repeat(5,minmax(0,1fr))}}
+
+/* Two columns on iPhone: local actions above, Google links below. */
+.detail-actions .detail-map-wide{grid-column:1/-1}
+.detail-actions .detail-external-label{grid-column:1/-1;margin-top:5px;
+ border-top:1px solid var(--stroke);padding-top:12px;
+ color:var(--muted);font-size:11px;font-weight:900}
+.detail-actions .detail-external-btn{background:var(--paper);font-size:clamp(11px,3.1vw,13px)}
