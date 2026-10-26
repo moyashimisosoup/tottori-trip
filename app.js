@@ -347,11 +347,19 @@ function matches(p){
  }
  return true
 }
+function searchHasDirectPlaceName(){
+ const term=normalizedSearch(state.query);
+ return !!term&&state.places.some(p=>matches(p)&&normalizedSearch(p.name).includes(term))
+}
+function isDirectSearchName(p){
+ return normalizedSearch(p.name).includes(normalizedSearch(state.query))
+}
 function filtered(){
  const bounds=state.map?.getBounds();
  const center=state.map?.getCenter()||state.center;
  const searching=!!state.query.trim();
- const visible=state.places.filter(p=>matches(p)&&
+ const namesOnly=searching&&searchHasDirectPlaceName();
+ const visible=state.places.filter(p=>matches(p)&&(!namesOnly||isDirectSearchName(p))&&
   (searching||p.lat==null||p.lng==null||!bounds?.isValid()||bounds.contains([p.lat,p.lng])));
  if(searching){
   const query=normalizedSearch(state.query);
@@ -392,9 +400,50 @@ function searchVisibleMap(){
  $('searchHereBtn').hidden=true;
  fetchPlaces(state.query)
 }
-/** Focus the *actual geocoded search matches*; never invent a position for a reference. */
+/** Present a visible pin above the map's regular marker collection. */
+function highlightRegisteredResult(p){
+ if(!state.map||!window.L)return;
+ if(state.focusMarker)state.map.removeLayer(state.focusMarker);
+ state.focusedSearchPlaceId=p.id;
+ state.focusMarker=L.marker([p.lat,p.lng],{
+  icon:mapPoiIcon(p,'is-focus is-search'),zIndexOffset:2500
+ }).on('click',()=>openDetail(p)).addTo(state.map)
+}
+/** Registered search results come first. An address API is only a fallback. */
 function focusSearchResults({silent=false}={}){
  if(!state.map||!state.query.trim())return 0;
+ const term=normalizedSearch(state.query);
+ const candidates=state.places.filter(p=>matches(p)&&Number.isFinite(p.lat)&&Number.isFinite(p.lng));
+ // A direct monument name wins over umbrella site notes mentioning it.
+ const directlyNamed=candidates.filter(p=>normalizedSearch(p.name).includes(term));
+ const named=(directlyNamed.length?directlyNamed:candidates).sort((a,b)=>{
+  const key=p=>{const name=normalizedSearch(p.name);return name===term?0:name.startsWith(term)?1:name.includes(term)?2:3};
+  return key(a)-key(b)
+ });
+ if(named.length){
+  if(!state.searchOriginalView){
+   const pos=state.map.getCenter();
+   state.searchOriginalView={lat:pos.lat,lng:pos.lng,zoom:state.map.getZoom()}
+  }
+  state.searchMapActive=true;
+  const uniqueCoords=new Set(named.map(p=>p.lat.toFixed(5)+','+p.lng.toFixed(5)));
+  if(uniqueCoords.size===1){
+   state.map.setView([named[0].lat,named[0].lng],Math.max(15,state.map.getZoom()),{animate:false});
+   highlightRegisteredResult(named[0]);
+   // Clear the ordinary copy of this marker. A focused highlight remains.
+   drawMarkers()
+  }else{
+   // Fit only up to the closest named results, not hundreds of loosely
+   // related search terms across the whole prefecture.
+   const best=named.slice(0,20);
+   const coords=best.map(p=>[p.lat,p.lng]);
+   state.map.fitBounds(coords,{padding:[40,40],maxZoom:15,animate:false});
+   if(state.focusMarker){state.map.removeLayer(state.focusMarker);state.focusMarker=null}
+   state.focusedSearchPlaceId=null
+  }
+  mapStamp();refreshMapSize(80);
+  return named.length
+ }
  const single=state.geocodeResult;
  if(single&&Number.isFinite(single.lat)&&Number.isFinite(single.lng)){
   if(!state.searchOriginalView){
@@ -565,6 +614,12 @@ async function geocodeSubmittedKeyword(keyword){
 }
 function resetSearchMap(){
  clearGeocode();
+ clearTimeout(liveSearchFocusTimer);
+ if(state.focusMarker&&state.map){
+  state.map.removeLayer(state.focusMarker);
+  state.focusMarker=null
+ }
+ state.focusedSearchPlaceId=null;
  const old=state.searchOriginalView;
  state.searchMapActive=false;
  state.searchOriginalView=null;
@@ -872,9 +927,11 @@ function drawMarkers(){
  state.markers.clearLayers();
  const bounds=state.map.getBounds();
  const searching=!!state.query.trim();
- const list=state.places.filter(p=>matches(p)&&
+ const namesOnly=searching&&searchHasDirectPlaceName();
+ const list=state.places.filter(p=>matches(p)&&(!namesOnly||isDirectSearchName(p))&&
   Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&
-  (searching||!bounds?.isValid()||bounds.contains([p.lat,p.lng])));
+  (searching||!bounds?.isValid()||bounds.contains([p.lat,p.lng]))&&
+  !(state.focusMarker&&p.id===state.focusedSearchPlaceId));
  const approximateGroups=new Map();
  for(const p of list){
   if(p.lat==null||p.lng==null)continue;
@@ -1238,16 +1295,33 @@ function chooseFilter(f){
  if(f==='literature')focusLiteraryRegion()
 }
 function resetArea(){const a=AREAS[$('area').value];state.area=$('area').value;state.center={lat:a.lat,lng:a.lng};state.gps=null;status(a.name+'の地図 · 現在地未取得');state.query='';$('search').value='';state.lastQuery='';state.searchMapActive=false;state.searchOriginalView=null;clearGeocode();updateMap();fetchPlaces();if(state.filter==='literature')focusLiteraryRegion()}
-function onSearchInput(){
+let liveSearchFocusTimer=null;
+function onSearchInput(event){
  const previous=state.query;
  state.query=$('search').value.trim();
+ clearTimeout(liveSearchFocusTimer);
+ if(previous!==state.query&&state.focusMarker&&state.map){
+  state.map.removeLayer(state.focusMarker);
+  state.focusMarker=null;
+  state.focusedSearchPlaceId=null
+ }
  if(previous&&!state.query)resetSearchMap(); // Return to the map location before search.
  else if(previous!==state.query)clearGeocode();
- renderList(); // Local and curated results respond immediately, including during IME entry.
- if(previous&&!state.query)fetchPlaces(''); // Clearing the search restores nearby API data.
+ renderList(); // The list and matching map data update without an API lookup.
+ if(previous&&!state.query){fetchPlaces('');return}
+ if(event?.isComposing||state.query.length<2||state.tab!=='places')return;
+ // The list updates on input, so the map must also follow a registered match.
+ // Wait until typing/IME settles; keep an explicit search submit immediate.
+ const query=state.query;
+ liveSearchFocusTimer=setTimeout(()=>{
+  if(state.query!==query||!state.map||state.tab!=='places')return;
+  const matchesHere=state.places.filter(p=>matches(p)&&Number.isFinite(p.lat)&&Number.isFinite(p.lng));
+  if(matchesHere.length>=1&&matchesHere.length<=5)focusSearchResults({silent:true})
+ },380)
 }
 function doSearch(ev){
  ev.preventDefault();
+ clearTimeout(liveSearchFocusTimer);
  state.query=$('search').value.trim(); // Keep the query until cleared by the user.
  clearGeocode(); // Only current submitted search can have a temporary address pin.
  if(state.query){
