@@ -347,11 +347,19 @@ function matches(p){
  }
  return true
 }
+function searchHasDirectPlaceName(){
+ const term=normalizedSearch(state.query);
+ return !!term&&state.places.some(p=>matches(p)&&normalizedSearch(p.name).includes(term))
+}
+function isDirectSearchName(p){
+ return normalizedSearch(p.name).includes(normalizedSearch(state.query))
+}
 function filtered(){
  const bounds=state.map?.getBounds();
  const center=state.map?.getCenter()||state.center;
  const searching=!!state.query.trim();
- const visible=state.places.filter(p=>matches(p)&&
+ const namesOnly=searching&&searchHasDirectPlaceName();
+ const visible=state.places.filter(p=>matches(p)&&(!namesOnly||isDirectSearchName(p))&&
   (searching||p.lat==null||p.lng==null||!bounds?.isValid()||bounds.contains([p.lat,p.lng])));
  if(searching){
   const query=normalizedSearch(state.query);
@@ -919,7 +927,8 @@ function drawMarkers(){
  state.markers.clearLayers();
  const bounds=state.map.getBounds();
  const searching=!!state.query.trim();
- const list=state.places.filter(p=>matches(p)&&
+ const namesOnly=searching&&searchHasDirectPlaceName();
+ const list=state.places.filter(p=>matches(p)&&(!namesOnly||isDirectSearchName(p))&&
   Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&
   (searching||!bounds?.isValid()||bounds.contains([p.lat,p.lng]))&&
   !(state.focusMarker&&p.id===state.focusedSearchPlaceId));
