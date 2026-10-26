@@ -396,6 +396,7 @@ function searchVisibleMap(){
 function highlightRegisteredResult(p){
  if(!state.map||!window.L)return;
  if(state.focusMarker)state.map.removeLayer(state.focusMarker);
+ state.focusedSearchPlaceId=p.id;
  state.focusMarker=L.marker([p.lat,p.lng],{
   icon:mapPoiIcon(p,'is-focus is-search'),zIndexOffset:2500
  }).on('click',()=>openDetail(p)).addTo(state.map)
@@ -420,7 +421,9 @@ function focusSearchResults({silent=false}={}){
   const uniqueCoords=new Set(named.map(p=>p.lat.toFixed(5)+','+p.lng.toFixed(5)));
   if(uniqueCoords.size===1){
    state.map.setView([named[0].lat,named[0].lng],Math.max(15,state.map.getZoom()),{animate:false});
-   highlightRegisteredResult(named[0])
+   highlightRegisteredResult(named[0]);
+   // Clear the ordinary copy of this marker. A focused highlight remains.
+   drawMarkers()
   }else{
    // Fit only up to the closest named results, not hundreds of loosely
    // related search terms across the whole prefecture.
@@ -428,6 +431,7 @@ function focusSearchResults({silent=false}={}){
    const coords=best.map(p=>[p.lat,p.lng]);
    state.map.fitBounds(coords,{padding:[40,40],maxZoom:15,animate:false});
    if(state.focusMarker){state.map.removeLayer(state.focusMarker);state.focusMarker=null}
+   state.focusedSearchPlaceId=null
   }
   mapStamp();refreshMapSize(80);
   return named.length
@@ -607,6 +611,7 @@ function resetSearchMap(){
   state.map.removeLayer(state.focusMarker);
   state.focusMarker=null
  }
+ state.focusedSearchPlaceId=null;
  const old=state.searchOriginalView;
  state.searchMapActive=false;
  state.searchOriginalView=null;
@@ -916,7 +921,8 @@ function drawMarkers(){
  const searching=!!state.query.trim();
  const list=state.places.filter(p=>matches(p)&&
   Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&
-  (searching||!bounds?.isValid()||bounds.contains([p.lat,p.lng])));
+  (searching||!bounds?.isValid()||bounds.contains([p.lat,p.lng]))&&
+  !(state.focusMarker&&p.id===state.focusedSearchPlaceId));
  const approximateGroups=new Map();
  for(const p of list){
   if(p.lat==null||p.lng==null)continue;
@@ -1285,6 +1291,11 @@ function onSearchInput(event){
  const previous=state.query;
  state.query=$('search').value.trim();
  clearTimeout(liveSearchFocusTimer);
+ if(previous!==state.query&&state.focusMarker&&state.map){
+  state.map.removeLayer(state.focusMarker);
+  state.focusMarker=null;
+  state.focusedSearchPlaceId=null
+ }
  if(previous&&!state.query)resetSearchMap(); // Return to the map location before search.
  else if(previous!==state.query)clearGeocode();
  renderList(); // The list and matching map data update without an API lookup.
