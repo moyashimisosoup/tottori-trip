@@ -404,18 +404,21 @@ function highlightRegisteredResult(p){
 function focusSearchResults({silent=false}={}){
  if(!state.map||!state.query.trim())return 0;
  const term=normalizedSearch(state.query);
- const named=state.places.filter(p=>matches(p)&&Number.isFinite(p.lat)&&Number.isFinite(p.lng))
-  .sort((a,b)=>{
-   const key=p=>{const name=normalizedSearch(p.name);return name===term?0:name.startsWith(term)?1:name.includes(term)?2:3};
-   return key(a)-key(b)
-  });
+ const candidates=state.places.filter(p=>matches(p)&&Number.isFinite(p.lat)&&Number.isFinite(p.lng));
+ // A direct monument name wins over umbrella site notes mentioning it.
+ const directlyNamed=candidates.filter(p=>normalizedSearch(p.name).includes(term));
+ const named=(directlyNamed.length?directlyNamed:candidates).sort((a,b)=>{
+  const key=p=>{const name=normalizedSearch(p.name);return name===term?0:name.startsWith(term)?1:name.includes(term)?2:3};
+  return key(a)-key(b)
+ });
  if(named.length){
   if(!state.searchOriginalView){
    const pos=state.map.getCenter();
    state.searchOriginalView={lat:pos.lat,lng:pos.lng,zoom:state.map.getZoom()}
   }
   state.searchMapActive=true;
-  if(named.length===1){
+  const uniqueCoords=new Set(named.map(p=>p.lat.toFixed(5)+','+p.lng.toFixed(5)));
+  if(uniqueCoords.size===1){
    state.map.setView([named[0].lat,named[0].lng],Math.max(15,state.map.getZoom()),{animate:false});
    highlightRegisteredResult(named[0])
   }else{
